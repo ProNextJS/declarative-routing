@@ -1,5 +1,6 @@
 import chokidar from "chokidar";
 import { Command } from "commander";
+import { red } from "kleur/colors";
 
 import {
   parseFile,
@@ -8,7 +9,7 @@ import {
   writeRoutes,
   buildFiles,
 } from "./build-tools";
-import { getConfig } from "./config";
+import { getConfig, hasConfig } from "./config";
 
 let ready = false;
 
@@ -17,6 +18,15 @@ export const build = new Command()
   .description("initialize your project and install dependencies")
   .option("-w, --watch", "watch files continuously", false)
   .action(async (opts) => {
+    if (!hasConfig()) {
+      console.log(
+        `This project has ${red(
+          "NOT been initialized for next-tsr"
+        )}.\nInitialize the project first, then run build to update if routes are added or altered.`
+      );
+      return;
+    }
+
     if (opts.watch) {
       const config = getConfig();
       chokidar

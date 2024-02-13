@@ -32,6 +32,9 @@ dependencies:
   kleur:
     specifier: ^4.1.5
     version: 4.1.5
+  log-symbols:
+    specifier: ^6.0.0
+    version: 6.0.0
   magicast:
     specifier: ^0.3.3
     version: 0.3.3

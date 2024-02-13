@@ -15,7 +15,6 @@ export type RouteInfo<
   Search extends z.ZodSchema
 > = {
   name: string;
-  fn: (p: z.input<Params>) => string;
   params: Params;
   search?: Search;
   description?: string;
@@ -105,23 +104,66 @@ type RouteBuilder<Params extends z.ZodSchema, Search extends z.ZodSchema> = {
     options?: PushOptions
   ) => void;
   Link: React.FC<
-    Omit<LinkProps, "href"> & {
-      params?: z.input<Params>;
-      search?: z.input<Search>;
-    } & { children?: React.ReactNode }
-  >;
-  QLink: React.FC<
     Omit<LinkProps, "href"> &
       z.input<Params> & {
         search?: z.input<Search>;
       } & { children?: React.ReactNode }
   >;
+  ParamsLink: React.FC<
+    Omit<LinkProps, "href"> & {
+      params?: z.input<Params>;
+      search?: z.input<Search>;
+    } & { children?: React.ReactNode }
+  >;
 };
+
+function createPathBuilder<T extends Record<string, string | string[]>>(
+  route: string
+): (params: T) => string {
+  const pathArr = route.split("/");
+
+  let catchAllSegment: ((params: T) => string) | null = null;
+  if (pathArr.at(-1)?.startsWith("[[...")) {
+    const catchKey = pathArr.pop()!.replace("[[...", "").replace("]]", "");
+    catchAllSegment = (params: T) => {
+      const catchAll = params[catchKey] as unknown as string[];
+      return catchAll ? `/${catchAll.join("/")}` : "";
+    };
+  }
+
+  const elems: ((params: T) => string)[] = [];
+  for (const elem of pathArr) {
+    const catchAll = elem.match(/\[\.\.\.(.*)\]/);
+    const param = elem.match(/\[(.*)\]/);
+    if (catchAll?.[1]) {
+      const key = catchAll[1];
+      elems.push((params: T) =>
+        (params[key as unknown as string] as string[]).join("/")
+      );
+    } else if (param?.[1]) {
+      const key = param[1];
+      elems.push((params: T) => params[key as unknown as string] as string);
+    } else {
+      elems.push(() => elem);
+    }
+  }
+
+  return (params: T): string => {
+    const p = elems.map((e) => e(params)).join("/");
+    if (catchAllSegment) {
+      return p + catchAllSegment(params);
+    } else {
+      return p;
+    }
+  };
+}
 
 function createRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
->(info: RouteInfo<Params, Search>) {
+>(route: string, info: RouteInfo<Params, Search>) {
+  const fn = createPathBuilder<z.output<Params>>(route);
+
   return (params?: z.input<Params>, search?: z.input<Search>) => {
     let checkedParams = params || {};
     if (info.params) {
@@ -141,7 +183,7 @@ function createRouteBuilder<
       );
     }
 
-    const baseUrl = info.fn(checkedParams);
+    const baseUrl = fn(checkedParams);
     const searchString = search && queryString.stringify(search);
     return [baseUrl, searchString ? `?${searchString}` : ""].join("");
   };
@@ -153,10 +195,11 @@ export function makePostRoute<
   Body extends z.ZodSchema,
   Result extends z.ZodSchema
 >(
+  route: string,
   info: RouteInfo<Params, Search>,
   postInfo: PostInfo<Body, Result>
 ): PostRouteBuilder<Params, Search, Body, Result> {
-  const urlBuilder = createRouteBuilder(info);
+  const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: PostRouteBuilder<Params, Search, Body, Result> = (
     body: z.input<Body>,
@@ -164,7 +207,6 @@ export function makePostRoute<
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<z.output<Result>> => {
-    console.log(1);
     const safeBody = postInfo.body.safeParse(body);
     if (!safeBody.success) {
       throw new Error(
@@ -172,7 +214,6 @@ export function makePostRoute<
       );
     }
 
-    console.log(2);
     return fetch(urlBuilder(p, search), {
       ...options,
       method: "POST",
@@ -183,22 +224,18 @@ export function makePostRoute<
       },
     })
       .then((res) => {
-        console.log(res);
         if (!res.ok) {
           throw new Error(`Failed to fetch ${info.name}: ${res.statusText}`);
         }
         return res.json() as Promise<z.output<Result>>;
       })
       .then((data) => {
-        console.log(data);
         const result = postInfo.result.safeParse(data);
-        console.log(4);
         if (!result.success) {
           throw new Error(
             `Invalid response for route ${info.name}: ${result.error.message}`
           );
         }
-        console.log(5);
         return result.data;
       });
   };
@@ -245,10 +282,11 @@ export function makePutRoute<
   Body extends z.ZodSchema,
   Result extends z.ZodSchema
 >(
+  route: string,
   info: RouteInfo<Params, Search>,
   putInfo: PutInfo<Body, Result>
 ): PutRouteBuilder<Params, Search, Body, Result> {
-  const urlBuilder = createRouteBuilder(info);
+  const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: PutRouteBuilder<Params, Search, Body, Result> = (
     body: z.input<Body>,
@@ -330,10 +368,11 @@ export function makeGetRoute<
   Search extends z.ZodSchema,
   Result extends z.ZodSchema
 >(
+  route: string,
   info: RouteInfo<Params, Search>,
   getInfo: GetInfo<Result>
 ): GetRouteBuilder<Params, Search, Result> {
-  const urlBuilder = createRouteBuilder(info);
+  const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: GetRouteBuilder<Params, Search, Result> = (
     p?: z.input<Params>,
@@ -386,8 +425,8 @@ export function makeGetRoute<
 export function makeDeleteRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
->(info: RouteInfo<Params, Search>): DeleteRouteBuilder<Params> {
-  const urlBuilder = createRouteBuilder(info);
+>(route: string, info: RouteInfo<Params, Search>): DeleteRouteBuilder<Params> {
+  const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: DeleteRouteBuilder<Params> = (
     p?: z.input<Params>,
@@ -418,8 +457,12 @@ export function makeDeleteRoute<
 export function makeRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
->(info: RouteInfo<Params, Search>): RouteBuilder<Params, Search> {
+>(
+  route: string,
+  info: RouteInfo<Params, Search>
+): RouteBuilder<Params, Search> {
   const routeBuilder: RouteBuilder<Params, Search> = createRouteBuilder(
+    route,
     info
   ) as RouteBuilder<Params, Search>;
 
@@ -452,7 +495,7 @@ export function makeRoute<
     };
   }
 
-  routeBuilder.Link = function RouteLink({
+  routeBuilder.ParamsLink = function RouteLink({
     params: linkParams,
     search: linkSearch,
     children,
@@ -468,7 +511,7 @@ export function makeRoute<
     );
   };
 
-  routeBuilder.QLink = function RouteLink({
+  routeBuilder.Link = function RouteLink({
     search: linkSearch,
     children,
     ...props

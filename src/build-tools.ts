@@ -1,19 +1,20 @@
-import path from "node:path";
-import fs from "node:fs";
+import path from "path";
+import fs from "fs-extra";
 import { parseModule } from "magicast";
 import boxen from "boxen";
 import { diffLines } from "diff";
 import { bold, green, red } from "kleur/colors";
 import { glob } from "glob";
+import { fileURLToPath } from "url";
 
 import { getConfig, Config } from "./config";
 
 type RouteInfo = {
   importPath: string;
+  infoPath: string;
   importKey: string;
   verbs: string[];
   pathTemplate: string;
-  pathArgs: string[];
 };
 const paths: Record<string, RouteInfo> = {};
 
@@ -77,9 +78,8 @@ import { ${Array.from(imports).join(", ")} } from "./makeRoute";\n\n`;
   }
 
   const exports: string[] = [];
-  for (const { verbs, pathTemplate, pathArgs, importKey } of sortedPaths) {
+  for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
-      const args = pathArgs.length ? `{ ${pathArgs.join(", ")} }` : "";
       exports.push(`export const ${importKey} = makeRoute(
   "${pathTemplate}",
   {
@@ -88,7 +88,6 @@ import { ${Array.from(imports).join(", ")} } from "./makeRoute";\n\n`;
   );`);
     } else {
       for (const verb of verbs) {
-        const args = pathArgs.length ? `{ ${pathArgs.join(", ")} }` : "";
         exports.push(`export const ${verb.toLowerCase()}${importKey} = make${upperFirst(
           verb.toLowerCase()
         )}Route(
@@ -115,6 +114,7 @@ import { ${Array.from(imports).join(", ")} } from "./makeRoute";\n\n`;
     }
     fs.writeFileSync(routesPath, code);
   }
+
   return report;
 }
 
@@ -134,10 +134,10 @@ export function parseFile(fpath: string) {
 
   const newPath: RouteInfo = {
     importPath: `@/app/${fpath}`.replace(/.ts$/, ""),
+    infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],
     pathTemplate: "",
-    pathArgs: [],
   };
 
   const code: string = fs
@@ -153,48 +153,6 @@ export function parseFile(fpath: string) {
   }
 
   newPath.pathTemplate = `/${path.parse(fpath).dir.split(path.sep).join("/")}`;
-  // .split(path.sep);
-
-  // let catchAllSegment = "";
-  // let addCatchAll: string | null = null;
-  // if (pathArr.at(-1)?.startsWith("[[...")) {
-  //   addCatchAll = pathArr.pop()!.replace("[[...", "").replace("]]", "");
-  //   catchAllSegment =
-  //     "${" +
-  //     addCatchAll +
-  //     " && " +
-  //     addCatchAll +
-  //     ".length > 0 ? `/${" +
-  //     addCatchAll +
-  //     ".join('/')}` : ''}";
-  // }
-
-  // newPath.pathTemplate =
-  //   "/" +
-  //   pathArr
-  //     .map((p) => {
-  //       const optionalCatchAll = p.match(/\[\[\.\.\.(.*)\]\]/);
-  //       if (optionalCatchAll?.[1]) {
-  //         return "";
-  //       }
-  //       const catchAll = p.match(/\[\.\.\.(.*)\]/);
-  //       if (catchAll?.[1]) {
-  //         newPath.pathArgs.push(catchAll?.[1]!);
-  //         return "${" + catchAll?.[1] + ".join('/')}";
-  //       }
-  //       const param = p.match(/\[(.*)\]/);
-  //       if (param?.[1]) {
-  //         newPath.pathArgs.push(param?.[1]!);
-  //         return "${" + param?.[1] + "}";
-  //       }
-  //       return p;
-  //     })
-  //     .join("/") +
-  //   catchAllSegment;
-
-  // if (addCatchAll) {
-  //   newPath.pathArgs.push(addCatchAll);
-  // }
 
   paths[fpath] = newPath;
 
@@ -321,4 +279,38 @@ export async function buildFiles(silent: boolean = false) {
     routeCount,
     diff,
   };
+}
+
+export async function buildREADME() {
+  const sortedPaths = Object.values(paths).sort((a, b) =>
+    a.importPath.localeCompare(b.importPath)
+  );
+
+  let tasks = "";
+  for (const { infoPath, verbs, importKey, pathTemplate } of sortedPaths) {
+    if (verbs.length > 0) {
+      for (const verb of verbs) {
+        tasks += `- [ ] \`${infoPath}\`: Add typing for \`${verb}\`\n`;
+        tasks += `- [ ] Convert \`${verb}\` fetch calls to \`${pathTemplate}\` to \`${verb.toLowerCase()}${importKey}(...)\` calls\n`;
+      }
+    } else {
+      tasks += `- [ ] \`${infoPath}\`: Add search typing to if the page supports search paramaters\n`;
+      tasks += `- [ ] Convert \`Link\` components for \`${pathTemplate}\` to \`<${importKey}.Link>\`\n`;
+      if (infoPath.includes("[")) {
+        tasks += `- [ ] Convert \`params\` typing in \`${infoPath.replace(
+          ".info",
+          ""
+        )}\` to \`z.infer<>\`\n`;
+      }
+    }
+  }
+
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  let contents = fs
+    .readFileSync(path.resolve(__dirname, "../assets/NEXT-TSR-README.md"))
+    .toString();
+  contents = contents.replace("{{TASKS}}", tasks);
+
+  fs.writeFileSync("./NEXT-TSR-README.md", contents);
 }

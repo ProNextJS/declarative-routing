@@ -5,9 +5,11 @@ import { detect } from "@antfu/ni";
 import { execa } from "execa";
 import ora from "ora";
 import { type PackageJson } from "type-fest";
+import { red, bold, italic } from "kleur/colors";
+import logSymbols from "log-symbols";
 
 import { getConfig } from "./config";
-import { buildFiles, showDiff } from "./build-tools";
+import { buildFiles, buildREADME } from "./build-tools";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
@@ -126,10 +128,26 @@ export async function setup() {
 
   const report = await buildFiles(true);
 
+  await buildREADME();
+
   spinner.succeed(`Done.`);
 
+  console.log(`\n${bold("Initialization completed successfully")}`);
+
   if (report.routesAdded > 0) {
-    console.log(`Added ${report.routesAdded} new info files`);
+    console.log(
+      logSymbols.success,
+      `Added ${report.routesAdded} .info files to your project.`
+    );
   }
-  showDiff(report.diff);
+  console.log(
+    logSymbols.success,
+    `Added next-tsr support files in ${config.routes}.`
+  );
+
+  console.log(
+    `\nYour next step is to read the ${red(
+      italic(bold("NEXT-TSR-README.md"))
+    )} file and follow the post setup tasks.`
+  );
 }

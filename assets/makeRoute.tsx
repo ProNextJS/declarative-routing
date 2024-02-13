@@ -9,11 +9,6 @@ import {
 import queryString from "query-string";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/navigation";
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
-
-extendZodWithOpenApi(z);
-
-export { z };
 
 export type RouteInfo<
   Params extends z.ZodSchema,
@@ -115,6 +110,12 @@ type RouteBuilder<Params extends z.ZodSchema, Search extends z.ZodSchema> = {
       search?: z.input<Search>;
     } & { children?: React.ReactNode }
   >;
+  QLink: React.FC<
+    Omit<LinkProps, "href"> &
+      z.input<Params> & {
+        search?: z.input<Search>;
+      } & { children?: React.ReactNode }
+  >;
 };
 
 function createRouteBuilder<
@@ -163,6 +164,7 @@ export function makePostRoute<
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<z.output<Result>> => {
+    console.log(1);
     const safeBody = postInfo.body.safeParse(body);
     if (!safeBody.success) {
       throw new Error(
@@ -170,6 +172,7 @@ export function makePostRoute<
       );
     }
 
+    console.log(2);
     return fetch(urlBuilder(p, search), {
       ...options,
       method: "POST",
@@ -180,18 +183,22 @@ export function makePostRoute<
       },
     })
       .then((res) => {
+        console.log(res);
         if (!res.ok) {
           throw new Error(`Failed to fetch ${info.name}: ${res.statusText}`);
         }
         return res.json() as Promise<z.output<Result>>;
       })
       .then((data) => {
+        console.log(data);
         const result = postInfo.result.safeParse(data);
+        console.log(4);
         if (!result.success) {
           throw new Error(
             `Invalid response for route ${info.name}: ${result.error.message}`
           );
         }
+        console.log(5);
         return result.data;
       });
   };
@@ -456,6 +463,29 @@ export function makeRoute<
   } & { children?: React.ReactNode }) {
     return (
       <Link {...props} href={routeBuilder(linkParams, { search: linkSearch })}>
+        {children}
+      </Link>
+    );
+  };
+
+  routeBuilder.QLink = function RouteLink({
+    search: linkSearch,
+    children,
+    ...props
+  }: Omit<LinkProps, "href"> &
+    z.input<Params> & {
+      search?: z.input<Search>;
+    } & { children?: React.ReactNode }) {
+    const params = info.params.parse(props);
+    const extraProps = { ...props };
+    for (const key of Object.keys(params)) {
+      delete extraProps[key];
+    }
+    return (
+      <Link
+        {...extraProps}
+        href={routeBuilder(info.params.parse(props), { search: linkSearch })}
+      >
         {children}
       </Link>
     );

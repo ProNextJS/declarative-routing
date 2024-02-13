@@ -2,6 +2,9 @@ import path from "path";
 import fs from "fs-extra";
 import { fileURLToPath } from "url";
 import { detect } from "@antfu/ni";
+import { execa } from "execa";
+import ora from "ora";
+import { type PackageJson } from "type-fest";
 
 import { getConfig } from "./config";
 
@@ -23,6 +26,36 @@ const OPENAPI_SCRIPTS = {
   "openapi:html": "npx @redocly/cli build-docs openapi-docs.yml",
 };
 
+export function getPackageInfo() {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  const packageJsonPath = path.resolve(__dirname, "../package.json");
+  return fs.readJSONSync(packageJsonPath) as PackageJson;
+}
+
+export function addPackageJSONScripts(scripts: Record<string, string>) {
+  const packageJsonPath = path.resolve("./package.json");
+  const packageJson = fs.readJSONSync(packageJsonPath) as PackageJson;
+
+  const newPackageJson = {
+    ...packageJson,
+    scripts: {
+      ...packageJson.scripts,
+    },
+  };
+  for (const key of Object.keys(scripts)) {
+    if (!newPackageJson.scripts[key]) {
+      newPackageJson.scripts[key] = scripts[key];
+    }
+  }
+
+  return fs.writeJSONSync(packageJsonPath, newPackageJson, {
+    spaces: 2,
+    EOL: "\n",
+  });
+}
+
 async function getPackageManager(): Promise<"yarn" | "pnpm" | "bun" | "npm"> {
   const packageManager = await detect({
     programmatic: true,
@@ -36,7 +69,12 @@ async function getPackageManager(): Promise<"yarn" | "pnpm" | "bun" | "npm"> {
   return packageManager ?? "npm";
 }
 
-export function copyAssets() {
+export async function copyAssets() {
+  const config = getConfig();
+  const openapi = !!config.openapi;
+
+  const spinner = ora(`Installing components...`).start();
+
   const { routes } = getConfig();
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
@@ -46,4 +84,42 @@ export function copyAssets() {
     path.resolve(__dirname, "../assets/makeRoute.tsx"),
     path.resolve(routes, "./makeRoute.tsx")
   );
+
+  spinner.text = "Getting package maanger.";
+
+  const pkgMgr = await getPackageManager();
+
+  spinner.text = "Installing dependencies.";
+
+  const packages = [
+    ...STD_PACKAGES.dependencies,
+    ...(openapi ? OPENAPI_PACKAGES.dependencies : []),
+  ];
+  if (packages?.length) {
+    await execa(pkgMgr, [pkgMgr === "npm" ? "install" : "add", ...packages]);
+  }
+
+  spinner.text = "Installing dev dependencies.";
+
+  const devPackages = [
+    ...STD_PACKAGES.devDependencies,
+    ...(openapi ? OPENAPI_PACKAGES.devDependencies : []),
+  ];
+  if (devPackages?.length) {
+    await execa(pkgMgr, [
+      pkgMgr === "npm" ? "install" : "add",
+      "-D",
+      ...devPackages,
+    ]);
+  }
+
+  spinner.text = "Adding package.json scripts.";
+
+  const scripts = {
+    ...STD_SCRIPTS,
+    ...(openapi ? OPENAPI_SCRIPTS : {}),
+  };
+  addPackageJSONScripts(scripts);
+
+  spinner.succeed(`Done.`);
 }

@@ -52,5 +52,5 @@ export const init = new Command()
       openapi: response.openapi ?? true ? `${routes}/openapi.json` : undefined,
     });
 
-    copyAssets();
+    await copyAssets();
   });

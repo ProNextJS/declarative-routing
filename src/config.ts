@@ -3,7 +3,7 @@ import fs from "node:fs";
 
 const CONFIG = "next-tsr.config.json";
 
-type Config = {
+export type Config = {
   src: string;
   routes: string;
   openapi?: string;

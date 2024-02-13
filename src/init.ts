@@ -4,7 +4,7 @@ import fs from "fs";
 import { red } from "kleur/colors";
 
 import { hasConfig, writeConfig } from "./config";
-import { copyAssets } from "./init-tools";
+import { setup } from "./init-tools";
 
 export const init = new Command()
   .name("init")
@@ -52,5 +52,5 @@ export const init = new Command()
       openapi: response.openapi ?? true ? `${routes}/openapi.json` : undefined,
     });
 
-    await copyAssets();
+    await setup();
   });

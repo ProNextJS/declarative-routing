@@ -4,6 +4,7 @@ import { parseModule } from "magicast";
 import boxen from "boxen";
 import { diffLines } from "diff";
 import { bold, green, red } from "kleur/colors";
+import { glob } from "glob";
 
 import { getConfig, Config } from "./config";
 
@@ -46,11 +47,11 @@ function getDiffContent(input: string, output: string): string | null {
 const jsClean = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "");
 
 const absoluteFilePath = (config: Config, fpath: string) =>
-  path.resolve("../", config.src, fpath);
+  path.resolve(config.src, fpath);
 
 const upperFirst = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
-export function writeRoutes() {
+export function writeRoutes(silent: boolean = false) {
   const config = getConfig();
   const imports: Set<string> = new Set();
   for (const { verbs } of Object.values(paths)) {
@@ -100,30 +101,36 @@ export { z } from "./makeRoute";\n\n`;
     }
   }
   code += "\n" + exports.join("\n\n");
-  const routesPath = path.resolve(
-    __dirname,
-    "../../",
-    config.routes,
-    "index.ts"
-  );
-  const oldCode = fs.readFileSync(routesPath).toString();
+  const routesPath = path.resolve(config.routes, "index.ts");
+  const oldCode = fs.existsSync(routesPath)
+    ? fs.readFileSync(routesPath).toString()
+    : "";
+
+  let report = "";
   if (oldCode !== code) {
-    console.log(
-      boxen(getDiffContent(oldCode, code) || "", {
-        width: 80,
-        padding: { left: 2, right: 2, top: 0, bottom: 0 },
-        borderStyle: "round",
-        dimBorder: true,
-      })
-    );
+    report = getDiffContent(oldCode, code) || "";
+    if (!silent) {
+      showDiff(report);
+    }
     fs.writeFileSync(routesPath, code);
   }
+  return report;
+}
+
+export function showDiff(report: string) {
+  console.log(
+    boxen(report, {
+      width: 80,
+      padding: { left: 2, right: 2, top: 0, bottom: 0 },
+      borderStyle: "round",
+      dimBorder: true,
+    })
+  );
 }
 
 export function parseFile(fpath: string) {
   const config = getConfig();
 
-  console.log("Parsing ", fpath);
   const newPath: RouteInfo = {
     importPath: `@/app/${fpath}`.replace(/.ts$/, ""),
     importKey: "",
@@ -188,6 +195,8 @@ export function parseFile(fpath: string) {
   }
 
   paths[fpath] = newPath;
+
+  return newPath.verbs.length || 1;
 }
 
 export function createInfoFile(config: Config, fpath: string) {
@@ -249,7 +258,65 @@ export function checkRouteFile(path: string) {
   const infoFile = path.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
   const absPath = absoluteFilePath(config, infoFile);
   if (!fs.existsSync(absPath)) {
-    console.log(`No info file for ${path}`);
     createInfoFile(config, path);
+    return true;
   }
+  return false;
+}
+
+export async function buildFiles(silent: boolean = false) {
+  const config = getConfig();
+
+  // Add new .info files to existing routes
+  const routes = await glob(
+    [
+      "**/page.{js,ts,jsx,tsx}",
+      "**/route.{js,ts,jsx,tsx}",
+      "page.{js,ts,jsx,tsx}",
+      "route.{js,ts,jsx,tsx}",
+    ],
+    {
+      cwd: config.src,
+    }
+  );
+
+  let routesAdded = 0;
+  for (const route of routes) {
+    if (checkRouteFile(route)) {
+      routesAdded++;
+    }
+  }
+  if (!silent && routesAdded > 0) {
+    console.log(`Added ${routesAdded} new info files`);
+  }
+
+  // Parse all .info files
+  const infoFiles = await glob(
+    [
+      "**/page.info.{js,ts,jsx,tsx}",
+      "**/route.info.{js,ts,jsx,tsx}",
+      "page.info.{js,ts,jsx,tsx}",
+      "route.info.{js,ts,jsx,tsx}",
+    ],
+    {
+      cwd: config.src,
+    }
+  );
+
+  let routeCount = 0;
+  for (const info of infoFiles) {
+    routeCount += parseFile(info);
+  }
+  if (!silent) {
+    console.log(`${routeCount} total routes`);
+  }
+
+  // Write routes
+  const diff = writeRoutes(silent);
+
+  return {
+    routesAdded,
+    routeCount,
+    diff,
+  };
 }

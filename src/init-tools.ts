@@ -7,6 +7,7 @@ import ora from "ora";
 import { type PackageJson } from "type-fest";
 
 import { getConfig } from "./config";
+import { buildFiles, showDiff } from "./build-tools";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
@@ -69,7 +70,7 @@ async function getPackageManager(): Promise<"yarn" | "pnpm" | "bun" | "npm"> {
   return packageManager ?? "npm";
 }
 
-export async function copyAssets() {
+export async function setup() {
   const config = getConfig();
   const openapi = !!config.openapi;
 
@@ -121,5 +122,14 @@ export async function copyAssets() {
   };
   addPackageJSONScripts(scripts);
 
+  spinner.text = "Adding info files and building routes.";
+
+  const report = await buildFiles(true);
+
   spinner.succeed(`Done.`);
+
+  if (report.routesAdded > 0) {
+    console.log(`Added ${report.routesAdded} new info files`);
+  }
+  showDiff(report.diff);
 }

@@ -16,8 +16,8 @@ const STD_PACKAGES = {
   devDependencies: ["@asteasolutions/zod-to-openapi"],
 };
 const STD_SCRIPTS = {
-  "ntstr:buid": "npx next-tsr build",
-  "ntstr:buid:watch": "npx next-tsr build --watch",
+  "next-tsr:build": "npx next-tsr build",
+  "next-tsr:build:watch": "npx next-tsr build --watch",
 };
 const OPENAPI_PACKAGES = {
   dependencies: [],
@@ -128,7 +128,7 @@ export async function setup() {
 
   const report = await buildFiles(true);
 
-  await buildREADME();
+  await buildREADME(pkgMgr);
 
   spinner.succeed(`Done.`);
 

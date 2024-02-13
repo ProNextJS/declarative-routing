@@ -7,7 +7,9 @@ import { bold, green, red } from "kleur/colors";
 import { glob } from "glob";
 import { fileURLToPath } from "url";
 
-import { getConfig, Config } from "./config";
+import { getConfig, shouldUseOpenAI } from "./config";
+import type { Config } from "./config";
+import { getRouteName } from "./ai-tools";
 
 type RouteInfo = {
   importPath: string;
@@ -129,7 +131,7 @@ export function showDiff(report: string) {
   );
 }
 
-export function parseFile(fpath: string) {
+export async function parseFile(fpath: string) {
   const config = getConfig();
 
   const newPath: RouteInfo = {
@@ -144,7 +146,17 @@ export function parseFile(fpath: string) {
     .readFileSync(absoluteFilePath(config, fpath))
     .toString();
   const mod = parseModule(code);
-  newPath.importKey = mod.exports.Route?.name ?? "";
+  if (shouldUseOpenAI(config)) {
+    try {
+      const name = await getRouteName(newPath.importPath);
+      if (name) {
+        newPath.importKey = name;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  newPath.importKey = newPath.importKey || mod.exports.Route?.name || "tempKey";
 
   for (const verb of ["GET", "POST", "DELETE", "PUT"]) {
     if (mod.exports[verb]) {
@@ -265,7 +277,7 @@ export async function buildFiles(silent: boolean = false) {
 
   let routeCount = 0;
   for (const info of infoFiles) {
-    routeCount += parseFile(info);
+    routeCount += await parseFile(info);
   }
   if (!silent) {
     console.log(`${routeCount} total routes`);
@@ -281,7 +293,7 @@ export async function buildFiles(silent: boolean = false) {
   };
 }
 
-export async function buildREADME() {
+export async function buildREADME(pkgMgr: string) {
   const sortedPaths = Object.values(paths).sort((a, b) =>
     a.importPath.localeCompare(b.importPath)
   );
@@ -305,12 +317,31 @@ export async function buildREADME() {
     }
   }
 
+  let routesTable = `
+| Route | Verb | Route Name | Using It |
+| ----- | ---- | ---- | ---- |
+`;
+  for (const { pathTemplate, verbs, importKey } of sortedPaths) {
+    if (verbs.length > 0) {
+      for (const verb of verbs) {
+        routesTable += `| \`${pathTemplate}\` | \`${verb}\` | ${importKey} | \`${verb.toLowerCase()}${importKey}(...)\` |\n`;
+      }
+    } else {
+      routesTable += `| \`${pathTemplate}\` | - | ${importKey} | \`<${importKey}.Link>\` |\n`;
+    }
+  }
+
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   let contents = fs
     .readFileSync(path.resolve(__dirname, "../assets/NEXT-TSR-README.md"))
     .toString();
   contents = contents.replace("{{TASKS}}", tasks);
+  contents = contents.replace("{{ROUTES}}", routesTable);
+  contents = contents.replace(
+    /\{\{PACKAGE_MANAGER_RUN\}\}/g,
+    pkgMgr === "npm" ? "npm run" : pkgMgr
+  );
 
   fs.writeFileSync("./NEXT-TSR-README.md", contents);
 }

@@ -25,6 +25,13 @@ export const init = new Command()
       src = "./app";
       routes = "./routes";
     }
+
+    let aiMessage =
+      "If there is an OPENAI_API_KEY environment variable should we use it to name routes?";
+    if (process.env.OPENAI_API_KEY) {
+      aiMessage = "OpenAI is configured, use it to name routes?";
+    }
+
     const response = await prompts([
       {
         type: "text",
@@ -39,9 +46,15 @@ export const init = new Command()
         initial: routes,
       },
       {
-        type: "toggle",
+        type: "confirm",
         name: "openapi",
         message: "Add OpenAPI output?",
+        initial: true,
+      },
+      {
+        type: "confirm",
+        name: "openai",
+        message: aiMessage,
         initial: true,
       },
     ]);
@@ -50,6 +63,7 @@ export const init = new Command()
       src: response.src ?? src,
       routes: response.routes ?? routes,
       openapi: response.openapi ?? true ? `${routes}/openapi.json` : undefined,
+      openai: response.openai,
     });
 
     await setup();

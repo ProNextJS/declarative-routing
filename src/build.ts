@@ -46,12 +46,12 @@ export const build = new Command()
           ready = true;
           writeRoutes();
         })
-        .on("all", (event, path) => {
+        .on("all", async (event, path) => {
           if (event === "unlink" || event === "unlinkDir") {
             fileRemoved(path);
             writeRoutes();
           } else if (path.match(/\.info\.ts(x?)$/)) {
-            parseFile(path);
+            await parseFile(path);
             if (ready) {
               writeRoutes();
             }

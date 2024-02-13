@@ -1,4 +1,3 @@
-[ ] Move to route as the first parameter, untouched
 [ ] Add tasks to a NEXT-TSR-README.md
 
 [ ] Update the openapi file

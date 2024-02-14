@@ -1,13 +1,16 @@
 {
   "name": "next-tsr",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "NextJS Typesafe Router",
-  "bin": "dist/index.js",
+  "bin": {
+    "next-tsr": "dist/index.js"
+  },
   "publishConfig": {
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "assets"
   ],
   "type": "module",
   "exports": "./dist/index.js",

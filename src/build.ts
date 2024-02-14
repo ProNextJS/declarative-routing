@@ -6,8 +6,8 @@ import {
   parseFile,
   fileRemoved,
   checkRouteFile,
-  writeRoutes,
   buildFiles,
+  updateBuildFiles,
 } from "./build-tools";
 import { getConfig, hasConfig } from "./config";
 
@@ -44,21 +44,21 @@ export const build = new Command()
         )
         .on("ready", () => {
           ready = true;
-          writeRoutes();
+          updateBuildFiles();
         })
         .on("all", async (event, path) => {
           if (event === "unlink" || event === "unlinkDir") {
             fileRemoved(path);
-            writeRoutes();
+            updateBuildFiles();
           } else if (path.match(/\.info\.ts(x?)$/)) {
             await parseFile(path);
             if (ready) {
-              writeRoutes();
+              updateBuildFiles();
             }
           } else if (path.match(/(page|route)\.(js|jsx|ts|tsx)$/)) {
             checkRouteFile(path);
             if (ready) {
-              writeRoutes();
+              updateBuildFiles();
             }
           }
         });

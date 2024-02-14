@@ -13,7 +13,7 @@ import { buildFiles, buildREADME } from "./build-tools";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
-  devDependencies: ["@asteasolutions/zod-to-openapi"],
+  devDependencies: [],
 };
 const STD_SCRIPTS = {
   "next-tsr:build": "npx next-tsr build",
@@ -21,7 +21,7 @@ const STD_SCRIPTS = {
 };
 const OPENAPI_PACKAGES = {
   dependencies: [],
-  devDependencies: ["@asteasolutions/zod-to-openapi"],
+  devDependencies: ["yaml", "@asteasolutions/zod-to-openapi"],
 };
 const OPENAPI_SCRIPTS = {
   openapi: "npm run openapi:yaml && npm run openapi:html",
@@ -123,6 +123,14 @@ export async function setup() {
     ...(openapi ? OPENAPI_SCRIPTS : {}),
   };
   addPackageJSONScripts(scripts);
+
+  if (config.openapi) {
+    spinner.text = "Setting up OpenAPI.";
+    fs.copyFileSync(
+      path.resolve(__dirname, "../assets/openapi.template.ts"),
+      config.openapi?.template
+    );
+  }
 
   spinner.text = "Adding info files and building routes.";
 

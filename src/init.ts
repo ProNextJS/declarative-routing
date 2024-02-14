@@ -62,7 +62,13 @@ export const init = new Command()
     writeConfig({
       src: response.src ?? src,
       routes: response.routes ?? routes,
-      openapi: response.openapi ?? true ? `${routes}/openapi.json` : undefined,
+      openapi:
+        response.openapi ?? true
+          ? {
+              target: `${routes}/openapi.ts`,
+              template: `${routes}/openapi.template.ts`,
+            }
+          : undefined,
       openai: response.openai,
     });
 

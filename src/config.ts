@@ -1,20 +1,33 @@
-import path from "node:path";
-import fs from "node:fs";
+import path from "path";
+import fs from "fs";
+import { z } from "zod";
 
 const CONFIG = "next-tsr.config.json";
 
-export type Config = {
-  src: string;
-  routes: string;
-  openapi?: string;
-  openai?: boolean;
-};
+const ConfigSchema = z.object({
+  src: z.string(),
+  routes: z.string(),
+  openapi: z
+    .object({
+      target: z.string(),
+      template: z.string(),
+    })
+    .optional(),
+  openai: z.boolean().optional(),
+});
 
-export function getConfig() {
+export type Config = z.infer<typeof ConfigSchema>;
+
+export function getConfig(): Config {
   const config = JSON.parse(
     fs.readFileSync(path.resolve(`./${CONFIG}`)).toString()
   );
-  return config as Config;
+  const cfg = ConfigSchema.safeParse(config);
+  if (!cfg.success) {
+    console.error("Invalid config file");
+    throw new Error(cfg.error.issues.map((i) => i.message).join("\n"));
+  }
+  return cfg.data;
 }
 
 export function shouldUseOpenAI(config?: Config) {
@@ -26,8 +39,13 @@ export function hasConfig() {
 }
 
 export function writeConfig(config: Config) {
+  const cfg = ConfigSchema.safeParse(config);
+  if (!cfg.success) {
+    console.error("Invalid config");
+    throw new Error(cfg.error.issues.map((i) => i.message).join("\n"));
+  }
   fs.writeFileSync(
     path.resolve(`./${CONFIG}`),
-    JSON.stringify(config, null, 2)
+    JSON.stringify(cfg.data, null, 2)
   );
 }

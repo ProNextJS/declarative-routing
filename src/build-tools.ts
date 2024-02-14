@@ -283,14 +283,96 @@ export async function buildFiles(silent: boolean = false) {
     console.log(`${routeCount} total routes`);
   }
 
-  // Write routes
   const diff = writeRoutes(silent);
+
+  if (config.openapi) {
+    writeOpenAPI(config);
+  }
 
   return {
     routesAdded,
     routeCount,
     diff,
   };
+}
+
+export function updateBuildFiles(silent: boolean = false) {
+  const config = getConfig();
+
+  writeRoutes(silent);
+
+  if (config.openapi) {
+    writeOpenAPI(config);
+  }
+}
+
+function writeOpenAPI(config: Config) {
+  if (!config.openapi) return;
+
+  let template = fs.readFileSync(config.openapi.template).toString();
+
+  const imports: string[] = [];
+  const registrations: string[] = [];
+
+  const pathPrefx = config.routes
+    .replace("./", "")
+    .split("/")
+    .map((s) => "..")
+    .join("/");
+
+  for (const path of Object.values(paths)) {
+    if (path.verbs.length > 0) {
+      imports.push(
+        `import * as ${path.importKey} from "${pathPrefx}/${config.src.replace(
+          "./",
+          ""
+        )}${path.infoPath.replace(".ts", "")}";`
+      );
+      for (const verb of path.verbs) {
+        let request = "";
+        if (verb !== "DELETE") {
+          request += `    params: ${path.importKey}.Route.params,`;
+        }
+        if (verb === "POST" || verb === "PUT") {
+          request += `\n    body: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: ${path.importKey}.${verb}.body,
+        },
+      },
+    },`;
+        }
+        registrations.push(`registry.registerPath({
+  method: "${verb.toLowerCase()}",
+  path: "${path.pathTemplate}",
+  summary: "",
+  request: {
+${request}
+  },
+  responses: {
+    200: {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: ${path.importKey}.${verb}.result,
+        },
+      },
+    },
+  },
+});
+`);
+      }
+    }
+  }
+
+  template = template.replace(/\/\/ \{\{IMPORTS\}\}/, imports.join("\n"));
+  template = template.replace(
+    /\/\/ \{\{REGISTRATIONS\}\}/,
+    registrations.join("\n")
+  );
+
+  fs.writeFileSync(config.openapi.target, template);
 }
 
 export async function buildREADME(pkgMgr: string) {

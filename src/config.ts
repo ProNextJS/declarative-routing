@@ -13,7 +13,6 @@ const ConfigSchema = z.object({
       template: z.string(),
     })
     .optional(),
-  openai: z.boolean().optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -28,10 +27,6 @@ export function getConfig(): Config {
     throw new Error(cfg.error.issues.map((i) => i.message).join("\n"));
   }
   return cfg.data;
-}
-
-export function shouldUseOpenAI(config?: Config) {
-  return (config || getConfig()).openai && process.env.OPENAI_API_KEY;
 }
 
 export function hasConfig() {

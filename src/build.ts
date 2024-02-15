@@ -3,15 +3,12 @@ import { Command } from "commander";
 import { red } from "kleur/colors";
 
 import {
-  parseFile,
   fileRemoved,
-  checkRouteFile,
   buildFiles,
-  updateBuildFiles,
+  processFile,
+  finishedProcessing,
 } from "./build-tools";
 import { getConfig, hasConfig } from "./config";
-
-let ready = false;
 
 export const build = new Command()
   .name("build")
@@ -29,6 +26,7 @@ export const build = new Command()
 
     if (opts.watch) {
       const config = getConfig();
+      let ready = false;
       chokidar
         .watch(
           [
@@ -43,23 +41,13 @@ export const build = new Command()
           }
         )
         .on("ready", () => {
-          ready = true;
-          updateBuildFiles();
+          finishedProcessing();
         })
         .on("all", async (event, path) => {
           if (event === "unlink" || event === "unlinkDir") {
             fileRemoved(path);
-            updateBuildFiles();
-          } else if (path.match(/\.info\.ts(x?)$/)) {
-            await parseFile(path);
-            if (ready) {
-              updateBuildFiles();
-            }
-          } else if (path.match(/(page|route)\.(js|jsx|ts|tsx)$/)) {
-            checkRouteFile(path);
-            if (ready) {
-              updateBuildFiles();
-            }
+          } else if (event === "add" || event === "change") {
+            processFile(path);
           }
         });
     } else {

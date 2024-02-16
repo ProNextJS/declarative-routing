@@ -65,7 +65,7 @@ Post setup there are some additional tasks that you need to complete to complete
 {{TASKS}}
 Once you've got that done you can remove this section.
 
-# Why is `makeRoutes` in the `@routes` module?
+# Why is `makeRoute` copied into the `@routes` module?
 
 You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `next-tsr` package. You can modify this file to change the behavior of the routing system.
 

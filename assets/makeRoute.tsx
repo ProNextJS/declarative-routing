@@ -16,7 +16,7 @@ export type RouteInfo<
 > = {
   name: string;
   params: Params;
-  search?: Search;
+  search: Search;
   description?: string;
 };
 
@@ -40,21 +40,33 @@ type FetchOptions = Parameters<typeof fetch>[1];
 
 type PushOptions = Parameters<ReturnType<typeof useRouter>["push"]>[1];
 
+type CoreRouteElements<
+  Params extends z.ZodSchema,
+  Search extends z.ZodSchema = typeof emptySchema
+> = {
+  params: z.output<Params>;
+  paramsSchema: Params;
+  search: z.output<Search>;
+  searchSchema: Search;
+};
+
 type PutRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
   Result extends z.ZodSchema
-> = {
+> = CoreRouteElements<Params, Search> & {
   (
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<z.output<Result>>;
-  params: z.output<Params>;
+
   body: z.output<Body>;
+  bodySchema: Body;
   result: z.output<Result>;
+  resultSchema: Result;
 };
 
 type PostRouteBuilder<
@@ -62,40 +74,48 @@ type PostRouteBuilder<
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
   Result extends z.ZodSchema
-> = {
+> = CoreRouteElements<Params, Search> & {
   (
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<z.output<Result>>;
-  params: z.output<Params>;
+
   body: z.output<Body>;
+  bodySchema: Body;
   result: z.output<Result>;
+  resultSchema: Result;
 };
 
 type GetRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Result extends z.ZodSchema
-> = {
+> = CoreRouteElements<Params, Search> & {
   (
     p?: z.input<Params>,
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<z.output<Result>>;
-  params: z.output<Params>;
+
   result: z.output<Result>;
+  resultSchema: Result;
 };
 
-type DeleteRouteBuilder<Params extends z.ZodSchema> = {
+type DeleteRouteBuilder<Params extends z.ZodSchema> = CoreRouteElements<
+  Params,
+  z.ZodSchema
+> & {
   (p?: z.input<Params>, options?: FetchOptions): Promise<void>;
-  params: z.output<Params>;
 };
 
-type RouteBuilder<Params extends z.ZodSchema, Search extends z.ZodSchema> = {
+type RouteBuilder<
+  Params extends z.ZodSchema,
+  Search extends z.ZodSchema
+> = CoreRouteElements<Params, Search> & {
   (p?: z.input<Params>, search?: z.input<Search>): string;
-  params: z.output<Params>;
+
   useParams: () => z.output<Params>;
   useSearchParams: () => z.output<Search>;
   usePush: () => (
@@ -103,6 +123,7 @@ type RouteBuilder<Params extends z.ZodSchema, Search extends z.ZodSchema> = {
     search?: z.input<Search>,
     options?: PushOptions
   ) => void;
+
   Link: React.FC<
     Omit<LinkProps, "href"> &
       z.input<Params> & {
@@ -176,7 +197,9 @@ function createRouteBuilder<
         checkedParams = safeParams.data;
       }
     }
-    const safeSearch = info.search ? info.search?.safeParse(search) : null;
+    const safeSearch = info.search
+      ? info.search?.safeParse(search || {})
+      : null;
     if (info.search && !safeSearch?.success) {
       throw new Error(
         `Invalid search params for route ${info.name}: ${safeSearch?.error.message}`
@@ -188,6 +211,8 @@ function createRouteBuilder<
     return [baseUrl, searchString ? `?${searchString}` : ""].join("");
   };
 }
+
+const emptySchema = z.object({});
 
 export function makePostRoute<
   Params extends z.ZodSchema,
@@ -240,38 +265,14 @@ export function makePostRoute<
       });
   };
 
-  // set the params type
   routeBuilder.params = undefined as z.output<Params>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "params", {
-    get() {
-      throw new Error(
-        "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
-
-  // set the body type
+  routeBuilder.paramsSchema = info.params;
+  routeBuilder.search = undefined as z.output<Search>;
+  routeBuilder.searchSchema = info.search;
   routeBuilder.body = undefined as z.output<Body>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "body", {
-    get() {
-      throw new Error(
-        "Routes.[route].body is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
-
-  // set the result type
+  routeBuilder.bodySchema = postInfo.body;
   routeBuilder.result = undefined as z.output<Result>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "result", {
-    get() {
-      throw new Error(
-        "Routes.[route].result is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
+  routeBuilder.resultSchema = postInfo.result;
 
   return routeBuilder;
 }
@@ -327,38 +328,14 @@ export function makePutRoute<
       });
   };
 
-  // set the params type
   routeBuilder.params = undefined as z.output<Params>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "params", {
-    get() {
-      throw new Error(
-        "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
-
-  // set the body type
+  routeBuilder.paramsSchema = info.params;
+  routeBuilder.search = undefined as z.output<Search>;
+  routeBuilder.searchSchema = info.search;
   routeBuilder.body = undefined as z.output<Body>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "body", {
-    get() {
-      throw new Error(
-        "Routes.[route].body is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
-
-  // set the result type
+  routeBuilder.bodySchema = putInfo.body;
   routeBuilder.result = undefined as z.output<Result>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "result", {
-    get() {
-      throw new Error(
-        "Routes.[route].result is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
+  routeBuilder.resultSchema = putInfo.result;
 
   return routeBuilder;
 }
@@ -397,27 +374,12 @@ export function makeGetRoute<
       });
   };
 
-  // set the params type
   routeBuilder.params = undefined as z.output<Params>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "params", {
-    get() {
-      throw new Error(
-        "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
-
-  // set the result type
+  routeBuilder.paramsSchema = info.params;
+  routeBuilder.search = undefined as z.output<Search>;
+  routeBuilder.searchSchema = info.search;
   routeBuilder.result = undefined as z.output<Result>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "result", {
-    get() {
-      throw new Error(
-        "Routes.[route].result is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
+  routeBuilder.resultSchema = getInfo.result;
 
   return routeBuilder;
 }
@@ -440,23 +402,17 @@ export function makeDeleteRoute<
     });
   };
 
-  // set the params type
   routeBuilder.params = undefined as z.output<Params>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "params", {
-    get() {
-      throw new Error(
-        "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
+  routeBuilder.paramsSchema = info.params;
+  routeBuilder.search = undefined as z.output<Search>;
+  routeBuilder.searchSchema = info.search;
 
   return routeBuilder;
 }
 
 export function makeRoute<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema = typeof emptySchema
 >(
   route: string,
   info: RouteInfo<Params, Search>
@@ -545,16 +501,10 @@ export function makeRoute<
     };
   };
 
-  // set the params type
   routeBuilder.params = undefined as z.output<Params>;
-  // set the runtime getter
-  Object.defineProperty(routeBuilder, "params", {
-    get() {
-      throw new Error(
-        "Routes.[route].params is only for type usage, not runtime. Use it like `typeof Routes.[routes].params`"
-      );
-    },
-  });
+  routeBuilder.paramsSchema = info.params;
+  routeBuilder.search = undefined as z.output<Search>;
+  routeBuilder.searchSchema = info.search;
 
   return routeBuilder;
 }

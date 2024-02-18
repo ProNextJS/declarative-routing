@@ -252,7 +252,7 @@ That would require running the `build` process continuously to keep the `@/route
 
 In the current model you can add search parameters, or change the return type of a `GET` request, and the `@/routes/index.ts` file will not need to be updated. It will only need to be updated when the route paths change.
 
-# Why is `makeRoute` copied into the `@routes` module?
+# Why is `makeRoute` copied into the `@/routes` directory?
 
 You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `next-tsr` package. You can modify this file to change the behavior of the routing system.
 

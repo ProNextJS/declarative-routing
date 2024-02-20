@@ -7,8 +7,10 @@ import {
   useSearchParams as useNextSearchParams,
 } from "next/navigation";
 import queryString from "query-string";
-import Link, { LinkProps } from "next/link";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+type LinkProps = Parameters<typeof Link>[0];
 
 export type RouteInfo<
   Params extends z.ZodSchema,

@@ -1,6 +1,6 @@
 {
   "name": "next-tsr",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "NextJS Typesafe Router",
   "bin": {
     "next-tsr": "dist/index.js"

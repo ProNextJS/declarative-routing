@@ -16,8 +16,8 @@ const STD_PACKAGES = {
   devDependencies: [],
 };
 const STD_SCRIPTS = {
-  "next-tsr:build": "npx next-tsr build",
-  "next-tsr:build:watch": "npx next-tsr build --watch",
+  "dr:build": "npx declarative-routes build",
+  "dr:build:watch": "npx declarative-routes build --watch",
 };
 const OPENAPI_PACKAGES = {
   dependencies: [],
@@ -150,12 +150,12 @@ export async function setup() {
   }
   console.log(
     logSymbols.success,
-    `Added next-tsr support files in ${config.routes}.`
+    `Added declarative-routes support files in ${config.routes}.`
   );
 
   console.log(
     `\nYour next step is to read the ${red(
-      italic(bold("NEXT-TSR-README.md"))
+      italic(bold("NEXT-DR-README.md"))
     )} file and follow the post setup tasks.`
   );
 }

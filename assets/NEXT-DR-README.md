@@ -1,10 +1,10 @@
-This application supports typesafe routing for NextJS using the `next-tsr` system.
+This application supports typesafe routing for NextJS using the `declarative-routes` system.
 
-# What is `next-tsr`?
+# What is `declarative-routes`?
 
-Next-tsr is a system for typesafe routing in NextJS. It uses a combination of TypeScript and a custom routing system to ensure that your routes are always in sync with your code. You'll never have to worry about broken links or missing routes again.
+Declarative Routes is a system for typesafe routing in React. It uses a combination of TypeScript and a custom routing system to ensure that your routes are always in sync with your code. You'll never have to worry about broken links or missing routes again.
 
-Next-tsr also handles API routes, so you'll have typesafe input and output from all of your APIs. In addition to `fetch` functions that are written for you automatically.
+In NextJS applications, Declarative Routes also handles API routes, so you'll have typesafe input and output from all of your APIs. In addition to `fetch` functions that are written for you automatically.
 
 # Route List
 
@@ -46,7 +46,7 @@ This is the equivalent of doing `fetch('/api/product/abc123')` but with typesafe
 
 # When your routes change
 
-Tou'll need to run `{{PACKAGE_MANAGER_RUN}} next-tsr:build` to update the generated files. This will update the types and the `@routes` module to reflect the changes.
+Tou'll need to run `{{PACKAGE_MANAGER_RUN}} dr:build` to update the generated files. This will update the types and the `@routes` module to reflect the changes.
 
 The way the system works the `.info.ts` files are link to the `@/routes/index.ts` file. So changing the Zod schemas for the routes does **NOT** require a rebuild. You need to run the build command when:
 
@@ -56,7 +56,7 @@ The way the system works the `.info.ts` files are link to the `@/routes/index.ts
 - You add or remove routes
 - You add or remove verbs from API routes (e.g. adding `POST` to an existing route)
 
-You can also run the build command in watch mode using `{{PACKAGE_MANAGER_RUN}} next-tsr:build:watch` but we don't recommend using that unless you are changing routes a lot. It's a neat party trick to change a route directory name and to watch the links automagically change with hot module reloading, but routes really don't change that much.
+You can also run the build command in watch mode using `{{PACKAGE_MANAGER_RUN}} dr:build:watch` but we don't recommend using that unless you are changing routes a lot. It's a neat party trick to change a route directory name and to watch the links automagically change with hot module reloading, but routes really don't change that much.
 
 # Finishing your setup
 
@@ -67,11 +67,11 @@ Once you've got that done you can remove this section.
 
 # Why is `makeRoute` copied into the `@routes` module?
 
-You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `next-tsr` package. You can modify this file to change the behavior of the routing system.
+You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routes` package. You can modify this file to change the behavior of the routing system.
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 
-We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `next-tsr`.
+We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routes`.
 
 # Credit where credit is due
 

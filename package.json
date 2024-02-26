@@ -1,9 +1,9 @@
 {
-  "name": "next-tsr",
-  "version": "0.0.6",
-  "description": "NextJS Typesafe Router",
+  "name": "declarative-routes",
+  "version": "0.1.0",
+  "description": "Declarative routes for React",
   "bin": {
-    "next-tsr": "dist/index.js"
+    "declarative-routes": "dist/index.js"
   },
   "publishConfig": {
     "access": "public"

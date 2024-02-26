@@ -18,7 +18,7 @@ export const build = new Command()
     if (!hasConfig()) {
       console.log(
         `This project has ${red(
-          "NOT been initialized for next-tsr"
+          "NOT been initialized for declarative routing"
         )}.\nInitialize the project first, then run build to update if routes are added or altered.`
       );
       return;

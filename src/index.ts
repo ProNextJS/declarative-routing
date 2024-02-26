@@ -11,7 +11,7 @@ process.on("SIGTERM", () => process.exit(0));
 async function main() {
   const packageInfo = await getPackageInfo();
   const program = new Command()
-    .name(packageInfo?.name || "next-tsr")
+    .name(packageInfo?.name || "declarative-routes")
     .description(`${packageInfo?.description} CLI`)
     .version(
       packageInfo?.version || "0.0.1",

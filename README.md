@@ -1,21 +1,27 @@
-## NextJS Typesafe Routing
+## Declarative Routing
 
-`next-tsr` sets up an optional typesafe routing system for NextJS. It maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
+`declarative-routes` sets up an optional declarative routing system for React projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
+
+## What is Declarative Routing?
+
+Typesafe routing is a way to ensure that your routes are structured properly; the parameters in the URL are correct and a route handler exists for that route. Declarative routing goes to the next step and ensures that your link is going to the correct route.
+
+With typesafe routing you still have to deal with urls; `<Link to={`/product/${product.id}`}>Product</Link>`. With declarative routing you can use a component that is typed to the route, and that will generate the correct URL for you. `<ProductDetail.Link productId={product.id}>Product</ProductDetail.Link>`. Later on, if the route changes, or the parameters change, the `ProductDetail.Link` component will be updated to reflect that everwhere it is used in your application.
 
 ## Installation
 
 Initialize your NextJS application:
 
 ```bash
-npx next-tsr init
+npx declarative-routes init
 ```
 
-This will generate an `@/routes` directory that you can use to navigate to pages and make API requests. It also generates a `NEXT-TSR-README.md` file in the root of your project that contains information about how to use the system.
+This will generate an `@/routes` directory that you can use to navigate to pages and make API requests. It also generates a `DECLARATIVE-ROUTES-README.md` file in the root of your project that contains information about how to use the system.
 
 You can update the files when the route paths change using the `build` command. This will update the `@/routes` directory to reflect the new paths. For example, if you add a new page, you can run the following command to update the routes:
 
 ```bash
-npx next-tsr build
+npx declarative-routes build
 ```
 
 ## Using Links To Pages Routes
@@ -254,11 +260,11 @@ In the current model you can add search parameters, or change the return type of
 
 # Why is `makeRoute` copied into the `@/routes` directory?
 
-You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `next-tsr` package. You can modify this file to change the behavior of the routing system.
+You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routes` package. You can modify this file to change the behavior of the routing system.
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 
-We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `next-tsr`.
+We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routes`.
 
 # Credit where credit is due
 

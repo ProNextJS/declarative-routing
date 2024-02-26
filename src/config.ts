@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 
-const CONFIG = "next-tsr.config.json";
+const CONFIG = "declarative-routes.config.json";
 
 const ConfigSchema = z.object({
   src: z.string(),

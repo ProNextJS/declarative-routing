@@ -1,10 +1,13 @@
 import { Command } from "commander";
-import prompts from "prompts";
-import fs from "fs";
+import fs from "fs-extra";
 import { red } from "kleur/colors";
+import path from "path";
+import { type PackageJson } from "type-fest";
 
-import { hasConfig, writeConfig } from "./config";
-import { setup } from "./init-tools";
+import { hasConfig } from "./config";
+
+import { setupNext } from "./nextjs/init";
+import { setupReactRouter } from "./react-router/init";
 
 export const init = new Command()
   .name("init")
@@ -14,50 +17,24 @@ export const init = new Command()
       console.log(
         `This project has ${red(
           "already been initialized"
-        )} to use NextJS Typesafe Routes.`
+        )} to use declarative routes.`
       );
       return;
     }
 
-    let src = "./src/app";
-    let routes = "./src/routes";
-    if (fs.existsSync("./app")) {
-      src = "./app";
-      routes = "./routes";
+    const packageJsonPath = path.resolve("./package.json");
+    const packageJson = fs.readJSONSync(packageJsonPath) as PackageJson;
+
+    if (packageJson?.dependencies?.["next"]) {
+      console.log("Setting up declarative routes for Next.js");
+      await setupNext();
+    } else if (packageJson?.dependencies?.["react-router-dom"]) {
+      console.log("Setting up React-Router...");
+      await setupReactRouter();
+    } else {
+      console.log(red("No supported framework detected."));
+      console.log(
+        "Please use declarative routes in a Next.js or React-Router-Dom application."
+      );
     }
-
-    const response = await prompts([
-      {
-        type: "text",
-        name: "src",
-        message: "What is your source directory?",
-        initial: src,
-      },
-      {
-        type: "text",
-        name: "routes",
-        message: "Where do you want the routes directory?",
-        initial: routes,
-      },
-      {
-        type: "confirm",
-        name: "openapi",
-        message: "Add OpenAPI output?",
-        initial: true,
-      },
-    ]);
-
-    writeConfig({
-      src: response.src ?? src,
-      routes: response.routes ?? routes,
-      openapi:
-        response.openapi ?? true
-          ? {
-              target: `${routes}/openapi.ts`,
-              template: `${routes}/openapi.template.ts`,
-            }
-          : undefined,
-    });
-
-    await setup();
   });

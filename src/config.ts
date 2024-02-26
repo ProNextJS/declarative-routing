@@ -5,7 +5,8 @@ import { z } from "zod";
 const CONFIG = "declarative-routes.config.json";
 
 const ConfigSchema = z.object({
-  src: z.string(),
+  mode: z.enum(["nextjs", "react-router"]),
+  src: z.string().optional(),
   routes: z.string(),
   openapi: z
     .object({

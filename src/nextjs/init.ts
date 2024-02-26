@@ -1,15 +1,21 @@
 import path from "path";
 import fs from "fs-extra";
-import { fileURLToPath } from "url";
-import { detect } from "@antfu/ni";
-import { execa } from "execa";
 import ora from "ora";
-import { type PackageJson } from "type-fest";
 import { red, bold, italic } from "kleur/colors";
 import logSymbols from "log-symbols";
+import prompts from "prompts";
 
-import { getConfig } from "./config";
+import { writeConfig } from "../config";
+
+import { getConfig } from "../config";
 import { buildFiles, buildREADME } from "./build-tools";
+import { buildFromTemplate } from "../template";
+
+import {
+  getPackageManager,
+  addPackageJSONScripts,
+  addPackages,
+} from "../shared";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
@@ -29,66 +35,22 @@ const OPENAPI_SCRIPTS = {
   "openapi:html": "npx @redocly/cli build-docs openapi-docs.yml",
 };
 
-export function getPackageInfo() {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
-  const packageJsonPath = path.resolve(__dirname, "../package.json");
-  return fs.readJSONSync(packageJsonPath) as PackageJson;
-}
-
-export function addPackageJSONScripts(scripts: Record<string, string>) {
-  const packageJsonPath = path.resolve("./package.json");
-  const packageJson = fs.readJSONSync(packageJsonPath) as PackageJson;
-
-  const newPackageJson = {
-    ...packageJson,
-    scripts: {
-      ...packageJson.scripts,
-    },
-  };
-  for (const key of Object.keys(scripts)) {
-    if (!newPackageJson.scripts[key]) {
-      newPackageJson.scripts[key] = scripts[key];
-    }
-  }
-
-  return fs.writeJSONSync(packageJsonPath, newPackageJson, {
-    spaces: 2,
-    EOL: "\n",
-  });
-}
-
-async function getPackageManager(): Promise<"yarn" | "pnpm" | "bun" | "npm"> {
-  const packageManager = await detect({
-    programmatic: true,
-    cwd: process.cwd(),
-  });
-
-  if (packageManager === "yarn@berry") return "yarn";
-  if (packageManager === "pnpm@6") return "pnpm";
-  if (packageManager === "bun") return "bun";
-
-  return packageManager ?? "npm";
-}
-
 export async function setup() {
   const config = getConfig();
   const openapi = !!config.openapi;
 
+  const { routes } = getConfig();
+
   const spinner = ora(`Installing components...`).start();
 
-  const { routes } = getConfig();
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-
   fs.mkdirpSync(routes);
-  fs.copyFileSync(
-    path.resolve(__dirname, "../assets/makeRoute.tsx"),
-    path.resolve(routes, "./makeRoute.tsx")
+  await buildFromTemplate(
+    "nextjs/makeRoute.tsx",
+    path.resolve(routes, "./makeRoute.tsx"),
+    {}
   );
 
-  spinner.text = "Getting package maanger.";
+  spinner.text = "Getting package mananger.";
 
   const pkgMgr = await getPackageManager();
 
@@ -98,9 +60,7 @@ export async function setup() {
     ...STD_PACKAGES.dependencies,
     ...(openapi ? OPENAPI_PACKAGES.dependencies : []),
   ];
-  if (packages?.length) {
-    await execa(pkgMgr, [pkgMgr === "npm" ? "install" : "add", ...packages]);
-  }
+  addPackages(packages);
 
   spinner.text = "Installing dev dependencies.";
 
@@ -108,13 +68,7 @@ export async function setup() {
     ...STD_PACKAGES.devDependencies,
     ...(openapi ? OPENAPI_PACKAGES.devDependencies : []),
   ];
-  if (devPackages?.length) {
-    await execa(pkgMgr, [
-      pkgMgr === "npm" ? "install" : "add",
-      "-D",
-      ...devPackages,
-    ]);
-  }
+  addPackages(devPackages, true);
 
   spinner.text = "Adding package.json scripts.";
 
@@ -126,15 +80,18 @@ export async function setup() {
 
   if (config.openapi) {
     spinner.text = "Setting up OpenAPI.";
-    fs.copyFileSync(
-      path.resolve(__dirname, "../assets/openapi.template.ts"),
-      config.openapi?.template
+    await buildFromTemplate(
+      "nextjs/openapi.template.ts",
+      config.openapi?.template,
+      {}
     );
   }
 
   spinner.text = "Adding info files and building routes.";
 
   const report = await buildFiles(true);
+
+  spinner.text = "Building README.";
 
   await buildREADME(pkgMgr);
 
@@ -155,7 +112,52 @@ export async function setup() {
 
   console.log(
     `\nYour next step is to read the ${red(
-      italic(bold("NEXT-DR-README.md"))
+      italic(bold("DR-README.md"))
     )} file and follow the post setup tasks.`
   );
+}
+
+export async function setupNext() {
+  let src = "./src/app";
+  let routes = "./src/routes";
+  if (fs.existsSync("./app")) {
+    src = "./app";
+    routes = "./routes";
+  }
+
+  const response = await prompts([
+    {
+      type: "text",
+      name: "src",
+      message: "What is your source directory?",
+      initial: src,
+    },
+    {
+      type: "text",
+      name: "routes",
+      message: "Where do you want the routes directory?",
+      initial: routes,
+    },
+    {
+      type: "confirm",
+      name: "openapi",
+      message: "Add OpenAPI output?",
+      initial: true,
+    },
+  ]);
+
+  writeConfig({
+    mode: "nextjs",
+    src: response.src ?? src,
+    routes: response.routes ?? routes,
+    openapi:
+      response.openapi ?? true
+        ? {
+            target: `${routes}/openapi.ts`,
+            template: `${routes}/openapi.template.ts`,
+          }
+        : undefined,
+  });
+
+  await setup();
 }

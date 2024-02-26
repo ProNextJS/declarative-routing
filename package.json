@@ -42,6 +42,7 @@
     "execa": "^8.0.1",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
+    "handlebars": "^4.7.8",
     "kleur": "^4.1.5",
     "log-symbols": "^6.0.0",
     "magicast": "^0.3.3",

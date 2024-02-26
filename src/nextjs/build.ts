@@ -8,7 +8,7 @@ import {
   processFile,
   finishedProcessing,
 } from "./build-tools";
-import { getConfig, hasConfig } from "./config";
+import { getConfig, hasConfig } from "../config";
 
 export const build = new Command()
   .name("build")
@@ -26,7 +26,6 @@ export const build = new Command()
 
     if (opts.watch) {
       const config = getConfig();
-      let ready = false;
       chokidar
         .watch(
           [

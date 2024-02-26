@@ -1,0 +1,18 @@
+import { z } from "zod";
+
+export const Route = {
+  name: "{{{name}}}",
+  params: z.object({
+{{#each params}}
+    {{{this}}},
+{{/each}}  
+  })
+};
+
+{{#each verbs}}
+export const {{{this.verb}}} = {
+  {{#each this.keys}}
+  {{{this}}}: z.object({}),
+  {{/each}}
+};
+{{/each}}

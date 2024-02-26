@@ -9,9 +9,14 @@ In NextJS applications, Declarative Routes also handles API routes, so you'll ha
 # Route List
 
 Here are the routes of the application:
-{{ROUTES}}
 
-To use the routes, you can import them from `@routes` and use them in your code.
+| Route | Verb | Route Name | Using It |
+| ----- | ---- | ---- | ---- |
+{{#each routes}}
+| `{{{this.pathTemplate}}}` | {{{this.verb}}} | `{{{this.importKey}}}` | `{{{this.usage}}}` |
+{{/each}}
+
+To use the routes, you can import them from `@/routes` and use them in your code.
 
 # Using the routes in your application
 
@@ -46,7 +51,7 @@ This is the equivalent of doing `fetch('/api/product/abc123')` but with typesafe
 
 # When your routes change
 
-Tou'll need to run `{{PACKAGE_MANAGER_RUN}} dr:build` to update the generated files. This will update the types and the `@routes` module to reflect the changes.
+Tou'll need to run `{{packageManager}} dr:build` to update the generated files. This will update the types and the `@/routes` module to reflect the changes.
 
 The way the system works the `.info.ts` files are link to the `@/routes/index.ts` file. So changing the Zod schemas for the routes does **NOT** require a rebuild. You need to run the build command when:
 
@@ -56,18 +61,20 @@ The way the system works the `.info.ts` files are link to the `@/routes/index.ts
 - You add or remove routes
 - You add or remove verbs from API routes (e.g. adding `POST` to an existing route)
 
-You can also run the build command in watch mode using `{{PACKAGE_MANAGER_RUN}} dr:build:watch` but we don't recommend using that unless you are changing routes a lot. It's a neat party trick to change a route directory name and to watch the links automagically change with hot module reloading, but routes really don't change that much.
+You can also run the build command in watch mode using `{{packageManager}} dr:build:watch` but we don't recommend using that unless you are changing routes a lot. It's a neat party trick to change a route directory name and to watch the links automagically change with hot module reloading, but routes really don't change that much.
 
 # Finishing your setup
 
 Post setup there are some additional tasks that you need to complete to completely typesafe your routes. We've compiled a handy check list so you can keep track of your progress.
 
-{{TASKS}}
+{{#each tasks}}
+- [ ] {{{this}}}
+{{/each}}
 Once you've got that done you can remove this section.
 
-# Why is `makeRoute` copied into the `@routes` module?
+# Why is `makeRoute` copied into the `@/routes` module?
 
-You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routes` package. You can modify this file to change the behavior of the routing system.
+You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@/routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routes` package. You can modify this file to change the behavior of the routing system.
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 

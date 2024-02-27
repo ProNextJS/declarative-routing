@@ -9,7 +9,7 @@ import { writeConfig } from "../config";
 
 import { getConfig } from "../config";
 import { buildFiles, buildREADME } from "./build-tools";
-import { buildFromTemplate } from "../template";
+import { buildFileFromTemplate } from "../template";
 
 import {
   getPackageManager,
@@ -44,7 +44,7 @@ export async function setup() {
   const spinner = ora(`Installing components...`).start();
 
   fs.mkdirpSync(routes);
-  await buildFromTemplate(
+  await buildFileFromTemplate(
     "nextjs/makeRoute.tsx",
     path.resolve(routes, "./makeRoute.tsx"),
     {}
@@ -80,7 +80,7 @@ export async function setup() {
 
   if (config.openapi) {
     spinner.text = "Setting up OpenAPI.";
-    await buildFromTemplate(
+    await buildFileFromTemplate(
       "nextjs/openapi.template.ts",
       config.openapi?.template,
       {}

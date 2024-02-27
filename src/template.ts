@@ -3,21 +3,25 @@ import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
 
+const templates: Record<string, HandlebarsTemplateDelegate<any>> = {};
+
 export async function buildStringFromTemplate(
   templatePath: string,
   data: unknown
 ) {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  let contents = fs
-    .readFileSync(path.resolve(__dirname, `../assets/${templatePath}`))
-    .toString();
+  if (!templates[templatePath]) {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    let contents = fs
+      .readFileSync(path.resolve(__dirname, `../assets/${templatePath}`))
+      .toString();
 
-  const template = Handlebars.compile(contents);
-  return template(data);
+    templates[templatePath] = Handlebars.compile(contents);
+  }
+  return templates[templatePath](data);
 }
 
-export async function buildFromTemplate(
+export async function buildFileFromTemplate(
   templatePath: string,
   destinationPath: string,
   data: unknown

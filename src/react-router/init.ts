@@ -7,7 +7,7 @@ import fs from "fs-extra";
 
 import { writeConfig, getConfig } from "../config";
 import { addPackages, getPackageManager } from "../shared";
-import { buildFromTemplate } from "../template";
+import { buildFileFromTemplate } from "../template";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
@@ -19,14 +19,14 @@ export async function setup() {
   const { routes } = getConfig();
 
   fs.mkdirpSync(routes);
-  await buildFromTemplate(
+  await buildFileFromTemplate(
     "react-router/index.ts",
     path.resolve(routes, "./index.ts"),
     {}
   );
 
   fs.mkdirpSync(routes);
-  await buildFromTemplate(
+  await buildFileFromTemplate(
     "react-router/makeRoute.tsx",
     path.resolve(routes, "./makeRoute.tsx"),
     {}
@@ -36,9 +36,13 @@ export async function setup() {
 
   addPackages(STD_PACKAGES.dependencies);
 
-  await buildFromTemplate("react-router/README.md.template", "./DR-README.md", {
-    routes,
-  });
+  await buildFileFromTemplate(
+    "react-router/README.md.template",
+    "./DR-README.md",
+    {
+      routes,
+    }
+  );
 
   spinner.succeed(`Done.`);
 

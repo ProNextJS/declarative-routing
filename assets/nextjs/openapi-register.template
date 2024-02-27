@@ -1,0 +1,30 @@
+registry.registerPath({
+  method: "{{{lowerVerb}}}",
+  path: "{{{pathTemplate}}}",
+  summary: "",
+  request: {
+{{#if isNotDELETE}}
+  params: {{{importKey}}}.Route.params,
+{{/if}}
+{{#if isPOSTorPUT}}
+  body: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: {{{importKey}}}.{{{verb}}}.body,
+        },
+      },
+    },
+{{/if}}
+  },
+  responses: {
+    200: {
+      description: "Success",
+      content: {
+        "application/json": {
+          schema: {{{importKey}}}.{{{verb}}}.result,
+        },
+      },
+    },
+  },
+});

@@ -1,14 +1,12 @@
 import path from "path";
 import fs from "fs-extra";
 import { parseModule } from "magicast";
-import boxen from "boxen";
-import { diffLines } from "diff";
-import { bold, green, red } from "kleur/colors";
 import { glob } from "glob";
 
-import { getConfig } from "../config";
+import { getConfig, absoluteFilePath } from "../config";
 import type { Config } from "../config";
-import { buildFromTemplate, buildStringFromTemplate } from "../template";
+import { buildFileFromTemplate, buildStringFromTemplate } from "../template";
+import { getDiffContent, upperFirst, jsClean, showDiff } from "../shared";
 
 type RouteInfo = {
   importPath: string;
@@ -17,6 +15,7 @@ type RouteInfo = {
   verbs: string[];
   pathTemplate: string;
 };
+
 const paths: Record<string, RouteInfo> = {};
 
 const VERB_KEYS: Record<string, string[]> = {
@@ -26,34 +25,11 @@ const VERB_KEYS: Record<string, string[]> = {
   UPDATE: ["body", "result"],
 };
 
-function getDiffContent(input: string, output: string): string | null {
-  let changes: string[] = [];
-  for (const change of diffLines(input, output)) {
-    let lines = change.value.trim().split("\n").slice(0, change.count);
-    if (lines.length === 0) continue;
-    if (change.added) {
-      lines.forEach((line) => {
-        changes.push(bold(green(line)));
-      });
-    }
-    if (change.removed) {
-      lines.forEach((line) => {
-        changes.push(red(line));
-      });
-    }
-  }
-
-  return changes.join("\n");
+export function removeFileFromCache(fpath: string) {
+  delete paths[fpath];
 }
 
-const jsClean = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "");
-
-const absoluteFilePath = (config: Config, fpath: string) =>
-  path.resolve(config.src || "", fpath);
-
-const upperFirst = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-
-export async function writeRoutes(silent: boolean = false) {
+async function writeRoutes(silent: boolean = false) {
   const config = getConfig();
   const imports: Set<string> = new Set();
   for (const { verbs } of Object.values(paths)) {
@@ -121,18 +97,7 @@ export async function writeRoutes(silent: boolean = false) {
   return report;
 }
 
-export function showDiff(report: string) {
-  console.log(
-    boxen(report, {
-      width: 80,
-      padding: { left: 2, right: 2, top: 0, bottom: 0 },
-      borderStyle: "round",
-      dimBorder: true,
-    })
-  );
-}
-
-export async function parseFile(fpath: string) {
+export async function parseInfoFile(fpath: string) {
   const config = getConfig();
 
   const newPath: RouteInfo = {
@@ -162,7 +127,7 @@ export async function parseFile(fpath: string) {
   return newPath.verbs.length || 1;
 }
 
-export async function createInfoFile(config: Config, fpath: string) {
+async function createInfoFile(config: Config, fpath: string) {
   const infoFile = fpath.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
   const absPath = absoluteFilePath(config, infoFile);
   const pathElements = path
@@ -198,7 +163,7 @@ export async function createInfoFile(config: Config, fpath: string) {
     }
   }
 
-  await buildFromTemplate("nextjs/info.ts.template", absPath, {
+  await buildFileFromTemplate("nextjs/info.ts.template", absPath, {
     name,
     params,
     verbs: verbs.map((verb) => ({ verb, keys: VERB_KEYS[verb] })),
@@ -257,7 +222,7 @@ export async function buildFiles(silent: boolean = false) {
 
   let routeCount = 0;
   for (const info of infoFiles) {
-    routeCount += await parseFile(info);
+    routeCount += await parseInfoFile(info);
   }
   if (!silent) {
     console.log(`${routeCount} total routes`);
@@ -266,7 +231,7 @@ export async function buildFiles(silent: boolean = false) {
   const diff = await writeRoutes(silent);
 
   if (config.openapi) {
-    writeOpenAPI(config);
+    await writeOpenAPI(config);
   }
 
   return {
@@ -276,17 +241,17 @@ export async function buildFiles(silent: boolean = false) {
   };
 }
 
-async function updateBuildFiles(silent: boolean = false) {
+export async function updateBuildFiles(silent: boolean = false) {
   const config = getConfig();
 
   await writeRoutes(silent);
 
   if (config.openapi) {
-    writeOpenAPI(config);
+    await writeOpenAPI(config);
   }
 }
 
-function writeOpenAPI(config: Config) {
+async function writeOpenAPI(config: Config) {
   if (!config.openapi) return;
 
   let template = fs.readFileSync(config.openapi.template).toString();
@@ -294,53 +259,33 @@ function writeOpenAPI(config: Config) {
   const imports: string[] = [];
   const registrations: string[] = [];
 
-  const pathPrefx = config.routes
+  const pathPrefix = config.routes
     .replace("./", "")
     .split("/")
-    .map((s) => "..")
+    .map(() => "..")
     .join("/");
 
   for (const path of Object.values(paths)) {
     if (path.verbs.length > 0) {
       imports.push(
-        `import * as ${path.importKey} from "${pathPrefx}/${(
-          config.src || ""
-        ).replace("./", "")}${path.infoPath.replace(".ts", "")}";`
+        await buildStringFromTemplate("nextjs/openapi-import.template", {
+          importKey: path.importKey,
+          pathPrefix,
+          srcDir: (config.src || "").replace("./", ""),
+          import: path.infoPath.replace(".ts", ""),
+        })
       );
       for (const verb of path.verbs) {
-        let request = "";
-        if (verb !== "DELETE") {
-          request += `    params: ${path.importKey}.Route.params,`;
-        }
-        if (verb === "POST" || verb === "PUT") {
-          request += `\n    body: {
-      required: true,
-      content: {
-        "application/json": {
-          schema: ${path.importKey}.${verb}.body,
-        },
-      },
-    },`;
-        }
-        registrations.push(`registry.registerPath({
-  method: "${verb.toLowerCase()}",
-  path: "${path.pathTemplate}",
-  summary: "",
-  request: {
-${request}
-  },
-  responses: {
-    200: {
-      description: "Success",
-      content: {
-        "application/json": {
-          schema: ${path.importKey}.${verb}.result,
-        },
-      },
-    },
-  },
-});
-`);
+        registrations.push(
+          await buildStringFromTemplate("nextjs/openapi-register.template", {
+            lowerVerb: verb.toLowerCase(),
+            pathTemplate: path.pathTemplate,
+            verb,
+            importKey: path.importKey,
+            isNotDELETE: verb !== "DELETE",
+            isPOSTorPUT: verb === "PUT" || verb === "POST",
+          })
+        );
       }
     }
   }
@@ -412,68 +357,9 @@ export async function buildREADME(pkgMgr: string) {
     }
   }
 
-  await buildFromTemplate("nextjs/README.md.template", "./DR-README.md", {
+  await buildFileFromTemplate("nextjs/README.md.template", "./DR-README.md", {
     tasks,
     routes,
     packageManager: pkgMgr === "npm" ? "npm run" : pkgMgr,
   });
-}
-
-const fileMap: Record<string, boolean> = {};
-let realTime = false;
-let allFilesProcessed = false;
-
-const allCompleted = () => {
-  return Object.values(fileMap).every((v) => v);
-};
-
-const checkForFinishedProcessing = async () => {
-  if (allCompleted()) {
-    if (allFilesProcessed) {
-      realTime = true;
-      await updateBuildFiles();
-    }
-  } else {
-    console.log(
-      `Waiting for: ${Object.keys(fileMap).filter((k) => !fileMap[k])}`
-    );
-  }
-};
-
-const isInfoFile = (path: string) => path.match(/\.info\.ts(x?)$/);
-const isRouteFile = (path: string) =>
-  path.match(/(page|route)\.(js|jsx|ts|tsx)$/);
-
-export const processFile = (path: string) => {
-  if (realTime) {
-    if (isInfoFile(path)) {
-      parseFile(path).then(async () => await updateBuildFiles());
-    } else if (isRouteFile(path)) {
-      checkRouteFile(path).then(async () => await updateBuildFiles());
-    }
-  } else {
-    if (isInfoFile(path)) {
-      fileMap[path] = false;
-      parseFile(path).then(() => {
-        fileMap[path] = true;
-        checkForFinishedProcessing();
-      });
-    } else if (isRouteFile(path)) {
-      fileMap[path] = false;
-      checkRouteFile(path).then(() => {
-        fileMap[path] = true;
-        checkForFinishedProcessing();
-      });
-    }
-  }
-};
-
-export const finishedProcessing = () => {
-  allFilesProcessed = true;
-  checkForFinishedProcessing();
-};
-
-export function fileRemoved(fpath: string) {
-  delete paths[fpath];
-  updateBuildFiles();
 }

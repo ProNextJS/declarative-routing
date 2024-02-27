@@ -45,3 +45,6 @@ export function writeConfig(config: Config) {
     JSON.stringify(cfg.data, null, 2)
   );
 }
+
+export const absoluteFilePath = (config: Config, fpath: string) =>
+  path.resolve(config.src || "", fpath);

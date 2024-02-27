@@ -4,6 +4,9 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs-extra";
 import { execa } from "execa";
+import { diffLines } from "diff";
+import { bold, green, red } from "kleur/colors";
+import boxen from "boxen";
 
 export function getPackageInfo() {
   const __filename = fileURLToPath(import.meta.url);
@@ -65,4 +68,40 @@ export async function addPackages(packages: string[], dev = false) {
   } else {
     await execa(pkgMgr, [pkgMgr === "npm" ? "install" : "add", ...packages]);
   }
+}
+
+export function getDiffContent(input: string, output: string): string | null {
+  let changes: string[] = [];
+  for (const change of diffLines(input, output)) {
+    let lines = change.value.trim().split("\n").slice(0, change.count);
+    if (lines.length === 0) continue;
+    if (change.added) {
+      lines.forEach((line) => {
+        changes.push(bold(green(line)));
+      });
+    }
+    if (change.removed) {
+      lines.forEach((line) => {
+        changes.push(red(line));
+      });
+    }
+  }
+
+  return changes.join("\n");
+}
+
+export const jsClean = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "");
+
+export const upperFirst = (str: string) =>
+  str.charAt(0).toUpperCase() + str.slice(1);
+
+export function showDiff(report: string) {
+  console.log(
+    boxen(report, {
+      width: 80,
+      padding: { left: 2, right: 2, top: 0, bottom: 0 },
+      borderStyle: "round",
+      dimBorder: true,
+    })
+  );
 }

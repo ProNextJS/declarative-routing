@@ -2,12 +2,8 @@ import chokidar from "chokidar";
 import { Command } from "commander";
 import { red } from "kleur/colors";
 
-import {
-  fileRemoved,
-  buildFiles,
-  processFile,
-  finishedProcessing,
-} from "./build-tools";
+import { buildFiles } from "./build-tools";
+import { fileRemoved, processFile, finishedProcessing } from "./watch";
 import { getConfig, hasConfig } from "../config";
 
 export const build = new Command()

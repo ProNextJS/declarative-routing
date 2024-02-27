@@ -1,8 +1,8 @@
-## Declarative Routing
+## Declarative Routes
 
 `declarative-routes` sets up an optional declarative routing system for React projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
 
-## What is Declarative Routing?
+## What are Declarative Routes?
 
 Typesafe routing is a way to ensure that your routes are structured properly; the parameters in the URL are correct and a route handler exists for that route. Declarative routing goes to the next step and ensures that your link is going to the correct route.
 

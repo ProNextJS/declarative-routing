@@ -22,8 +22,8 @@ const STD_PACKAGES = {
   devDependencies: [],
 };
 const STD_SCRIPTS = {
-  "dr:build": "npx declarative-routes build",
-  "dr:build:watch": "npx declarative-routes build --watch",
+  "dr:build": "npx declarative-routing build",
+  "dr:build:watch": "npx declarative-routing build --watch",
 };
 const OPENAPI_PACKAGES = {
   dependencies: [],
@@ -107,7 +107,7 @@ export async function setup() {
   }
   console.log(
     logSymbols.success,
-    `Added declarative-routes support files in ${config.routes}.`
+    `Added declarative-routing support files in ${config.routes}.`
   );
 
   console.log(

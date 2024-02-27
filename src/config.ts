@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 
-const CONFIG = "declarative-routes.config.json";
+const CONFIG = "declarative-routing.config.json";
 
 const ConfigSchema = z.object({
   mode: z.enum(["nextjs", "react-router"]),

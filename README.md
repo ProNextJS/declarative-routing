@@ -1,6 +1,6 @@
 ## Declarative Routes
 
-`declarative-routes` sets up an optional declarative routing system for React projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
+`declarative-routing` sets up an optional declarative routing system for React projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
 
 ## What are Declarative Routes?
 

@@ -3,7 +3,7 @@
 Initialize your NextJS application:
 
 ```bash
-npx declarative-routes init
+npx declarative-routing init
 ```
 
 This will generate an `@/routes` directory that you can use to navigate to pages and make API requests. It also generates a `DR-README.md` file in the root of your project that contains information about how to use the system.
@@ -11,7 +11,7 @@ This will generate an `@/routes` directory that you can use to navigate to pages
 You can update the files when the route paths change using the `build` command. This will update the `@/routes` directory to reflect the new paths. For example, if you add a new page, you can run the following command to update the routes:
 
 ```bash
-npx declarative-routes build
+npx declarative-routing build
 ```
 
 ## Using Links To Pages Routes
@@ -250,8 +250,8 @@ In the current model you can add search parameters, or change the return type of
 
 # Why is `makeRoute` copied into the `@/routes` directory?
 
-You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routes` package. You can modify this file to change the behavior of the routing system.
+You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routing` package. You can modify this file to change the behavior of the routing system.
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 
-We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routes`.
+We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routing`.

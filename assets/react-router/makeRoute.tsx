@@ -1,13 +1,14 @@
 /*
 Derived from: https://www.flightcontrol.dev/blog/fix-nextjs-routing-to-have-full-type-safety
 */
-import { z } from "zod";
+import { ZodSchema, z } from "zod";
 import queryString from "query-string";
 import {
   Link,
   NavLink,
   useParams as useParmsRR,
   useSearchParams as useSearchParamsRR,
+  RouteObject,
 } from "react-router-dom";
 
 type LinkProps = Parameters<typeof Link>[0];
@@ -20,10 +21,12 @@ export type RouteInfo<
   name: string;
   params: Params;
   search: Search;
-  description?: string;
 };
 
-type RouteBuilder<Params extends z.ZodSchema, Search extends z.ZodSchema> = {
+export type RouteBuilder<
+  Params extends z.ZodSchema,
+  Search extends z.ZodSchema
+> = {
   (p?: z.input<Params>, search?: z.input<Search>): string;
 
   useParams: () => z.output<Params>;
@@ -286,4 +289,85 @@ function convertURLSearchParamsToObject(
     }
   }
   return obj;
+}
+
+// Super hairy TypeScript generic code to convert a route tree into a map of route builders
+
+type RouteNode = Omit<RouteObject, "children"> & {
+  name: string;
+  params: ZodSchema;
+  search: ZodSchema;
+  children?: RouteNode[];
+};
+
+type RouteNodeInfer<S extends string> = Omit<RouteObject, "children"> & {
+  name: S;
+  params: ZodSchema;
+  search: ZodSchema;
+  children?: RouteNodeInfer<S>[] | [];
+};
+
+type RouteNodeArrToMap<T extends RouteNode[]> = {
+  [I in keyof T]: (x: RouteNodeToMap<T[I]>) => void;
+}[number] extends (x: infer I) => void
+  ? { [K in keyof I]: I[K] }
+  : never;
+
+type RouteNodeToMap<T extends RouteNode> = T extends {
+  children: infer R extends RouteNode[];
+}
+  ? {
+      [P in T["name"]]: RouteBuilder<T["params"], T["search"]>;
+    } & RouteNodeArrToMap<R>
+  : { [P in T["name"]]: RouteBuilder<T["params"], T["search"]> };
+
+export function parseRoutes<T extends RouteNodeInfer<S>[], S extends string>(
+  routes: [...T]
+): {
+  routes: RouteObject[];
+  declarativeRoutes: RouteNodeArrToMap<T>;
+} {
+  const declarativeRoutes = {} as RouteNodeArrToMap<T>;
+
+  function buildRoutes(
+    routes: RouteNode[],
+    pathStack: (string | undefined)[]
+  ): RouteObject[] {
+    function makePath(pathStack: (string | undefined)[]) {
+      const path = pathStack
+        .filter((x) => x)
+        .map((x) => (x === "/" ? "" : x))
+        .join("/");
+      return path;
+    }
+
+    // @ts-ignore
+    return routes.map((route) => {
+      const { name, params, search, ...rest } = route;
+      // @ts-ignore
+      declarativeRoutes[route.name as unknown as keyof RouteNodeArrToMap<T>] =
+        makeRoute<typeof route.params, typeof route.search>(
+          makePath([...pathStack, rest.path]),
+          {
+            name,
+            params,
+            search,
+          }
+        ) as unknown as keyof RouteNodeArrToMap<T>;
+      if (rest.children) {
+        return {
+          ...rest,
+          children: buildRoutes(rest.children, [...pathStack, rest.path]),
+        };
+      }
+      return rest;
+    });
+  }
+
+  const simplifiedRoutes = buildRoutes(routes, []);
+
+  return {
+    routes: simplifiedRoutes,
+    declarativeRoutes,
+  };
 }

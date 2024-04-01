@@ -197,7 +197,7 @@ export function makeRoute<
     search?: z.input<Search>;
   } & { children?: React.ReactNode }) {
     return (
-      <Link {...props} to={routeBuilder(linkParams, { search: linkSearch })}>
+      <Link {...props} to={routeBuilder(linkParams, linkSearch)}>
         {children}
       </Link>
     );
@@ -219,7 +219,7 @@ export function makeRoute<
     return (
       <Link
         {...extraProps}
-        to={routeBuilder(info.params.parse(props), { search: linkSearch })}
+        to={routeBuilder(info.params.parse(props), linkSearch)}
       >
         {children}
       </Link>
@@ -236,7 +236,7 @@ export function makeRoute<
     search?: z.input<Search>;
   } & { children?: React.ReactNode }) {
     return (
-      <NavLink {...props} to={routeBuilder(linkParams, { search: linkSearch })}>
+      <NavLink {...props} to={routeBuilder(linkParams, linkSearch)}>
         {children}
       </NavLink>
     );
@@ -258,7 +258,7 @@ export function makeRoute<
     return (
       <NavLink
         {...extraProps}
-        to={routeBuilder(info.params.parse(props), { search: linkSearch })}
+        to={routeBuilder(info.params.parse(props), linkSearch)}
       >
         {children}
       </NavLink>

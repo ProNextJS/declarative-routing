@@ -1,6 +1,6 @@
 {
   "name": "declarative-routing",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Declarative routes for React",
   "bin": {
     "declarative-routing": "dist/index.js"

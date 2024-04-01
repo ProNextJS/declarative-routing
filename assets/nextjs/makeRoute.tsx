@@ -419,12 +419,12 @@ export function makeRoute<
   route: string,
   info: RouteInfo<Params, Search>
 ): RouteBuilder<Params, Search> {
-  const routeBuilder: RouteBuilder<Params, Search> = createRouteBuilder(
+  const urlBuilder: RouteBuilder<Params, Search> = createRouteBuilder(
     route,
     info
   ) as RouteBuilder<Params, Search>;
 
-  routeBuilder.useParams = function useParams(): z.output<Params> {
+  urlBuilder.useParams = function useParams(): z.output<Params> {
     const res = info.params.safeParse(useNextParams());
     if (!res.success) {
       throw new Error(
@@ -435,25 +435,24 @@ export function makeRoute<
   };
 
   if (info?.search) {
-    routeBuilder.useSearchParams =
-      function useSearchParams(): z.output<Search> {
-        const res = info.search!.safeParse(
-          convertURLSearchParamsToObject(useNextSearchParams())
+    urlBuilder.useSearchParams = function useSearchParams(): z.output<Search> {
+      const res = info.search!.safeParse(
+        convertURLSearchParamsToObject(useNextSearchParams())
+      );
+      if (!res.success) {
+        throw new Error(
+          `Invalid search params for route ${info.name}: ${res.error.message}`
         );
-        if (!res.success) {
-          throw new Error(
-            `Invalid search params for route ${info.name}: ${res.error.message}`
-          );
-        }
-        return res.data;
-      };
+      }
+      return res.data;
+    };
   } else {
-    routeBuilder.useSearchParams = function useSearchParams() {
+    urlBuilder.useSearchParams = function useSearchParams() {
       throw new Error(`Route ${info.name} does not have search params`);
     };
   }
 
-  routeBuilder.ParamsLink = function RouteLink({
+  urlBuilder.ParamsLink = function RouteLink({
     params: linkParams,
     search: linkSearch,
     children,
@@ -463,13 +462,13 @@ export function makeRoute<
     search?: z.input<Search>;
   } & { children?: React.ReactNode }) {
     return (
-      <Link {...props} href={routeBuilder(linkParams, { search: linkSearch })}>
+      <Link {...props} href={urlBuilder(linkParams, linkSearch)}>
         {children}
       </Link>
     );
   };
 
-  routeBuilder.Link = function RouteLink({
+  urlBuilder.Link = function RouteLink({
     search: linkSearch,
     children,
     ...props
@@ -485,30 +484,30 @@ export function makeRoute<
     return (
       <Link
         {...extraProps}
-        href={routeBuilder(info.params.parse(props), { search: linkSearch })}
+        href={urlBuilder(info.params.parse(props), linkSearch)}
       >
         {children}
       </Link>
     );
   };
 
-  routeBuilder.usePush = function usePush() {
+  urlBuilder.usePush = function usePush() {
     const { push } = useRouter();
     return (
       p: z.input<Params>,
       search?: z.input<Search>,
       options?: PushOptions
     ) => {
-      push(routeBuilder(p, { search }), options);
+      push(urlBuilder(p, search), options);
     };
   };
 
-  routeBuilder.params = undefined as z.output<Params>;
-  routeBuilder.paramsSchema = info.params;
-  routeBuilder.search = undefined as z.output<Search>;
-  routeBuilder.searchSchema = info.search;
+  urlBuilder.params = undefined as z.output<Params>;
+  urlBuilder.paramsSchema = info.params;
+  urlBuilder.search = undefined as z.output<Search>;
+  urlBuilder.searchSchema = info.search;
 
-  return routeBuilder;
+  return urlBuilder;
 }
 
 function convertURLSearchParamsToObject(
@@ -519,6 +518,7 @@ function convertURLSearchParamsToObject(
   }
 
   const obj: Record<string, string | string[]> = {};
+  // @ts-ignore
   for (const [key, value] of params.entries()) {
     if (params.getAll(key).length > 1) {
       obj[key] = params.getAll(key);

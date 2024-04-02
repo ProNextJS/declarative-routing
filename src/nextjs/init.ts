@@ -60,7 +60,7 @@ export async function setup() {
     ...STD_PACKAGES.dependencies,
     ...(openapi ? OPENAPI_PACKAGES.dependencies : []),
   ];
-  addPackages(packages);
+  await addPackages(packages);
 
   spinner.text = "Installing dev dependencies.";
 
@@ -68,7 +68,7 @@ export async function setup() {
     ...STD_PACKAGES.devDependencies,
     ...(openapi ? OPENAPI_PACKAGES.devDependencies : []),
   ];
-  addPackages(devPackages, true);
+  await addPackages(devPackages, true);
 
   spinner.text = "Adding package.json scripts.";
 

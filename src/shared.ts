@@ -54,13 +54,12 @@ export async function getPackageManager(): Promise<
 }
 
 export async function addPackages(packages: string[], dev = false) {
-  if (packages.length === 0) return;
+  if (!packages?.length) {
+    return;
+  }
 
   const pkgMgr = await getPackageManager();
 
-  if (packages?.length) {
-    return;
-  }
   if (dev) {
     await execa(pkgMgr, [
       pkgMgr === "npm" ? "install" : "add",

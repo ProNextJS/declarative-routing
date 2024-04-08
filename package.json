@@ -24,6 +24,10 @@
     "name": "Jack Herrington",
     "email": "jherr@pobox.com"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ProNextJS/declarative-routing"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/diff": "^5.0.9",

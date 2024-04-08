@@ -51,7 +51,7 @@ This is the equivalent of doing `fetch('/api/product/abc123')` but with typesafe
 
 # When your routes change
 
-Tou'll need to run `{{packageManager}} dr:build` to update the generated files. This will update the types and the `@/routes` module to reflect the changes.
+You'll need to run `{{packageManager}} dr:build` to update the generated files. This will update the types and the `@/routes` module to reflect the changes.
 
 The way the system works the `.info.ts` files are link to the `@/routes/index.ts` file. So changing the Zod schemas for the routes does **NOT** require a rebuild. You need to run the build command when:
 
@@ -78,7 +78,7 @@ You **own** this routing system once you install it. And we anticipate as part o
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 
-We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routing`.
+We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatibility with the `build` command of `declarative-routing`.
 
 # Credit where credit is due
 

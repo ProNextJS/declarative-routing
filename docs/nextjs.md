@@ -64,7 +64,7 @@ This system is opt-in. You can use it for some routes, and not for others. You c
 Routes are typed using one or more of the methods defined in `@/router/makeRoute`.
 
 - `makeRoute` - Used for defining page routes
-- `makeGetReoute` - Used for defining GET API routes
+- `makeGetRoute` - Used for defining GET API routes
 - `makePostRoute` - Used for defining POST API routes
 - `makePutRoute` - Used for defining PUT API routes
 - `makeDeleteRoute` - Used for defining DELETE API routes
@@ -254,4 +254,4 @@ You **own** this routing system once you install it. And we anticipate as part o
 
 For example, you might want to change the way `GET`, `POST`, `PUT`, and `DELETE` are handled. Or you might want to change the way the `Link` component works. You can do all of that by modifying the `makeRoute.tsx` file.
 
-We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatiblity with the `build` command of `declarative-routing`.
+We do **NOT** recommend changing the parameters of `makeRoute`, `makeGetRoute`, `makePostRoute`, `makePutRoute`, or `makeDeleteRoute` functions because that would cause incompatibility with the `build` command of `declarative-routing`.

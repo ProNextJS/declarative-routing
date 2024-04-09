@@ -37,6 +37,16 @@ return (
   </Home.NavLink>
 );
 ```
+# Configure declarative-routing
+
+After running `npx declarative-routing init`, you don't need to configure anything to use it.
+However, you may want to customize some options to change the behavior of route generation.
+
+You can edit `declarative-routing.config.json` in the root of your project. The following options are available:
+
+- `mode`: choose between `react-router`and `nextjs`. It is automatically picked on init based on the project type.
+- `routes`: the directory where the routes are defined. It is picked from the initial wizard (and defaults to `src/routes`).
+- `importPathPrefix`: the path prefix to add to the import path of the self-generated route objects, in order to be able to resolve them. It defaults to `@/app`.
 
 # When your routes change
 

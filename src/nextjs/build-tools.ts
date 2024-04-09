@@ -97,11 +97,14 @@ async function writeRoutes(silent: boolean = false) {
   return report;
 }
 
+
 export async function parseInfoFile(fpath: string) {
   const config = getConfig();
+  const {importPathPrefix} = config;
+
 
   const newPath: RouteInfo = {
-    importPath: `@/app/${fpath}`.replace(/.ts$/, ""),
+    importPath: `${importPathPrefix || '@/app'}/${fpath}`.replace(/.ts$/, ""),
     infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],

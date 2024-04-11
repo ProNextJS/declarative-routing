@@ -102,10 +102,11 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
       .map((e) => e(params))
       .filter((v) => v)
       .join("/");
+
     if (catchAllSegment) {
-      return p + catchAllSegment(params);
+      return "/" + p + catchAllSegment(params);
     } else {
-      return p;
+      return "/" + p;
     }
   };
 }

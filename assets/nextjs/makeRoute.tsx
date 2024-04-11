@@ -166,7 +166,7 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
     } else if (param?.[1]) {
       const key = param[1];
       elems.push((params: T) => params[key as unknown as string] as string);
-    } else {
+    } else if (!(elem.startsWith("(") && elem.endsWith(")"))) {
       elems.push(() => elem);
     }
   }

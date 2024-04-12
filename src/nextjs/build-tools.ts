@@ -18,6 +18,8 @@ type RouteInfo = {
 
 const paths: Record<string, RouteInfo> = {};
 
+const ignore = ['**/node_modules/**', 'dist/**', '**/dist/**'];
+
 const VERB_KEYS: Record<string, string[]> = {
   GET: ["result"],
   POST: ["body", "result"],
@@ -195,6 +197,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
+      ignore
     }
   );
 
@@ -218,6 +221,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
+      ignore
     }
   );
 

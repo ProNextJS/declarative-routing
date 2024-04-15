@@ -18,7 +18,7 @@ type RouteInfo = {
 
 const paths: Record<string, RouteInfo> = {};
 
-const ignore = ['**/node_modules/**', 'dist/**', '**/dist/**'];
+const ignore = ["**/node_modules/**", "dist/**", "**/dist/**"];
 
 const VERB_KEYS: Record<string, string[]> = {
   GET: ["result"],
@@ -32,10 +32,13 @@ export function removeFileFromCache(fpath: string) {
 }
 
 function fixPath(config: Config, path: string) {
-  const {stripRoutePrefix} = config
-  if (!stripRoutePrefix) return path
-  if (path === "/"+stripRoutePrefix) return '/'
-  return path.replace(stripRoutePrefix.endsWith('/') ? stripRoutePrefix : stripRoutePrefix+"/", '')
+  const { stripRoutePrefix } = config;
+  if (!stripRoutePrefix) return path;
+  if (path === `/${stripRoutePrefix}`) return "/";
+  return path.replace(
+    stripRoutePrefix.endsWith("/") ? stripRoutePrefix : stripRoutePrefix + "/",
+    ""
+  );
 }
 
 async function writeRoutes(silent: boolean = false) {
@@ -68,7 +71,10 @@ async function writeRoutes(silent: boolean = false) {
   }[] = [];
   for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
-      pageRoutes.push({ pathTemplate: fixPath(config, pathTemplate), importKey })
+      pageRoutes.push({
+        pathTemplate: fixPath(config, pathTemplate),
+        importKey,
+      });
     } else {
       for (const verb of verbs) {
         apiRoutes.push({
@@ -108,10 +114,10 @@ async function writeRoutes(silent: boolean = false) {
 
 export async function parseInfoFile(fpath: string) {
   const config = getConfig();
-  const {importPathPrefix} = config;
+  const { importPathPrefix } = config;
 
   const newPath: RouteInfo = {
-    importPath: `${importPathPrefix || '@/app'}/${fpath}`.replace(/.ts$/, ""),
+    importPath: `${importPathPrefix || "@/app"}/${fpath}`.replace(/.ts$/, ""),
     infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],
@@ -204,7 +210,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
-      ignore
+      ignore,
     }
   );
 
@@ -228,7 +234,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
-      ignore
+      ignore,
     }
   );
 

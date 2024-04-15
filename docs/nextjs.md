@@ -20,7 +20,6 @@ Instead of doing this:
 
 ```tsx
 import Link from "next/link";
-
 <Link href={`/product/${product.id}`}>Product</Link>;
 ```
 
@@ -28,7 +27,6 @@ You can do this:
 
 ```tsx
 import { ProductDetail } from "@/routes";
-
 <ProductDetail.Link productId={product.id}>Product</ProductDetail.Link>;
 ```
 
@@ -77,11 +75,11 @@ Routes are typed using one or more of the methods defined in `@/router/makeRoute
 const ProductDetail = makeRoute("/product-detail/[productId]", {
   name: "ProductDetail",
   params: z.object({
-    productId: z.string(),
+    productId: z.string()
   }),
   search: z.object({
-    q: z.string().optional(),
-  }),
+    q: z.string().optional()
+  })
 });
 ```
 
@@ -128,15 +126,15 @@ export const getProduct = makeGetRoute(
   {
     name: "GetProduct",
     params: z.object({
-      productId: z.string(),
-    }),
+      productId: z.string()
+    })
   },
   {
     result: z.object({
       id: z.string(),
       name: z.string(),
-      price: z.number(),
-    }),
+      price: z.number()
+    })
   }
 );
 ```
@@ -232,7 +230,7 @@ You can, and should, import your own Route from `@/router` if your route support
 import { ProductDetail } from "@/routes";
 
 export default function ProductDetailPage({
-  params,
+  params
 }: {
   params: typeof ProductDetail.params;
 }) {

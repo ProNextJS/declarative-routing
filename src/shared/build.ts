@@ -26,13 +26,13 @@ export const build = new Command()
         .watch(
           [
             "./**/(route|page).info.(ts|tsx)",
-            "./**/(route|page).(js|jsx|ts|tsx)",
+            "./**/(route|page).(js|jsx|ts|tsx)"
           ],
           {
             ignored: /(^|[\/\\])\../,
             persistent: true,
             cwd: config.src,
-            usePolling: true,
+            usePolling: true
           }
         )
         .on("ready", () => {

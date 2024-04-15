@@ -4,7 +4,7 @@ Derived from: https://www.flightcontrol.dev/blog/fix-nextjs-routing-to-have-full
 import { z } from "zod";
 import {
   useParams as useNextParams,
-  useSearchParams as useNextSearchParams,
+  useSearchParams as useNextSearchParams
 } from "next/navigation";
 import queryString from "query-string";
 import Link from "next/link";
@@ -247,8 +247,8 @@ export function makePostRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     })
       .then((res) => {
         if (!res.ok) {
@@ -310,8 +310,8 @@ export function makePutRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     })
       .then((res) => {
         if (!res.ok) {

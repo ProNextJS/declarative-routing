@@ -22,8 +22,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/nextjs/build-tools.ts",
-    "src/nextjs/build.ts",
+    "src/shared/build-tools.ts",
+    "src/shared/build.ts",
     "src/config.ts",
     "src/init.ts"
   ],

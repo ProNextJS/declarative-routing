@@ -24,7 +24,7 @@ const VERB_KEYS: Record<string, string[]> = {
   GET: ["result"],
   POST: ["body", "result"],
   DELETE: [],
-  UPDATE: ["body", "result"],
+  UPDATE: ["body", "result"]
 };
 
 export function removeFileFromCache(fpath: string) {
@@ -73,7 +73,7 @@ async function writeRoutes(silent: boolean = false) {
     if (verbs.length === 0) {
       pageRoutes.push({
         pathTemplate: fixPath(config, pathTemplate),
-        importKey,
+        importKey
       });
     } else {
       for (const verb of verbs) {
@@ -82,17 +82,17 @@ async function writeRoutes(silent: boolean = false) {
           importKey,
           verb,
           upperVerb: upperFirst(verb.toLowerCase()),
-          lowerVerb: verb.toLowerCase(),
+          lowerVerb: verb.toLowerCase()
         });
       }
     }
   }
 
-  const code = await buildStringFromTemplate("nextjs/index.ts.template", {
+  const code = await buildStringFromTemplate("shared/index.ts.template", {
     imports: Array.from(imports).sort().join(", "),
     routeImports: sortedPaths,
     pageRoutes,
-    apiRoutes,
+    apiRoutes
   });
 
   const routesPath = path.resolve(config.routes, "index.ts");
@@ -121,7 +121,7 @@ export async function parseInfoFile(fpath: string) {
     infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],
-    pathTemplate: "",
+    pathTemplate: ""
   };
 
   const code: string = fs
@@ -179,10 +179,10 @@ async function createInfoFile(config: Config, fpath: string) {
     }
   }
 
-  await buildFileFromTemplate("nextjs/info.ts.template", absPath, {
+  await buildFileFromTemplate("shared/info.ts.template", absPath, {
     name,
     params,
-    verbs: verbs.map((verb) => ({ verb, keys: VERB_KEYS[verb] })),
+    verbs: verbs.map((verb) => ({ verb, keys: VERB_KEYS[verb] }))
   });
 }
 
@@ -206,11 +206,11 @@ export async function buildFiles(silent: boolean = false) {
       "**/page.{js,ts,jsx,tsx}",
       "**/route.{js,ts,jsx,tsx}",
       "page.{js,ts,jsx,tsx}",
-      "route.{js,ts,jsx,tsx}",
+      "route.{js,ts,jsx,tsx}"
     ],
     {
       cwd: config.src,
-      ignore,
+      ignore
     }
   );
 
@@ -230,11 +230,11 @@ export async function buildFiles(silent: boolean = false) {
       "**/page.info.{js,ts,jsx,tsx}",
       "**/route.info.{js,ts,jsx,tsx}",
       "page.info.{js,ts,jsx,tsx}",
-      "route.info.{js,ts,jsx,tsx}",
+      "route.info.{js,ts,jsx,tsx}"
     ],
     {
       cwd: config.src,
-      ignore,
+      ignore
     }
   );
 
@@ -255,7 +255,7 @@ export async function buildFiles(silent: boolean = false) {
   return {
     routesAdded,
     routeCount,
-    diff,
+    diff
   };
 }
 
@@ -286,22 +286,22 @@ async function writeOpenAPI(config: Config) {
   for (const path of Object.values(paths)) {
     if (path.verbs.length > 0) {
       imports.push(
-        await buildStringFromTemplate("nextjs/openapi-import.template", {
+        await buildStringFromTemplate("shared/openapi-import.template", {
           importKey: path.importKey,
           pathPrefix,
           srcDir: (config.src || "").replace("./", ""),
-          import: path.infoPath.replace(".ts", ""),
+          import: path.infoPath.replace(".ts", "")
         })
       );
       for (const verb of path.verbs) {
         registrations.push(
-          await buildStringFromTemplate("nextjs/openapi-register.template", {
+          await buildStringFromTemplate("shared/openapi-register.template", {
             lowerVerb: verb.toLowerCase(),
             pathTemplate: path.pathTemplate,
             verb,
             importKey: path.importKey,
             isNotDELETE: verb !== "DELETE",
-            isPOSTorPUT: verb === "PUT" || verb === "POST",
+            isPOSTorPUT: verb === "PUT" || verb === "POST"
           })
         );
       }
@@ -317,7 +317,10 @@ async function writeOpenAPI(config: Config) {
   fs.writeFileSync(config.openapi.target, template);
 }
 
-export async function buildREADME(pkgMgr: string) {
+export async function buildREADME(
+  pkgMgr: string,
+  mode: "nextjs" | "react-router"
+) {
   const sortedPaths = Object.values(paths).sort((a, b) =>
     a.importPath.localeCompare(b.importPath)
   );
@@ -362,7 +365,7 @@ export async function buildREADME(pkgMgr: string) {
           pathTemplate,
           verb,
           importKey,
-          usage: `${verb.toLowerCase()}${importKey}(...)`,
+          usage: `${verb.toLowerCase()}${importKey}(...)`
         });
       }
     } else {
@@ -370,14 +373,14 @@ export async function buildREADME(pkgMgr: string) {
         pathTemplate,
         verb: "-",
         importKey,
-        usage: `<${importKey}.Link>`,
+        usage: `<${importKey}.Link>`
       });
     }
   }
 
-  await buildFileFromTemplate("nextjs/README.md.template", "./DR-README.md", {
+  await buildFileFromTemplate(`${mode}/README.md.template`, "./DR-README.md", {
     tasks,
     routes,
-    packageManager: pkgMgr === "npm" ? "npm run" : pkgMgr,
+    packageManager: pkgMgr === "npm" ? "npm run" : pkgMgr
   });
 }

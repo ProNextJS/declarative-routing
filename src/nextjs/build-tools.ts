@@ -31,6 +31,13 @@ export function removeFileFromCache(fpath: string) {
   delete paths[fpath];
 }
 
+function fixPath(config: Config, path: string) {
+  const {stripRoutePrefix} = config
+  if (!stripRoutePrefix) return path
+  if (path === "/"+stripRoutePrefix) return '/'
+  return path.replace(stripRoutePrefix.endsWith('/') ? stripRoutePrefix : stripRoutePrefix+"/", '')
+}
+
 async function writeRoutes(silent: boolean = false) {
   const config = getConfig();
   const imports: Set<string> = new Set();
@@ -61,11 +68,11 @@ async function writeRoutes(silent: boolean = false) {
   }[] = [];
   for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
-      pageRoutes.push({ pathTemplate, importKey });
+      pageRoutes.push({ pathTemplate: fixPath(config, pathTemplate), importKey })
     } else {
       for (const verb of verbs) {
         apiRoutes.push({
-          pathTemplate,
+          pathTemplate: fixPath(config, pathTemplate),
           importKey,
           verb,
           upperVerb: upperFirst(verb.toLowerCase()),

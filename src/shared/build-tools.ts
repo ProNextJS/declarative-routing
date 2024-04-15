@@ -210,6 +210,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
+      posix: true,
       ignore
     }
   );
@@ -234,6 +235,7 @@ export async function buildFiles(silent: boolean = false) {
     ],
     {
       cwd: config.src,
+      posix: true,
       ignore
     }
   );

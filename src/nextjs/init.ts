@@ -8,31 +8,31 @@ import prompts from "prompts";
 import { writeConfig } from "../config";
 
 import { getConfig } from "../config";
-import { buildFiles, buildREADME } from "./build-tools";
+import { buildFiles, buildREADME } from "../shared/build-tools";
 import { buildFileFromTemplate } from "../template";
 
 import {
   getPackageManager,
   addPackageJSONScripts,
-  addPackages,
-} from "../shared";
+  addPackages
+} from "../shared/utils";
 
 const STD_PACKAGES = {
   dependencies: ["zod", "query-string"],
-  devDependencies: [],
+  devDependencies: []
 };
 const STD_SCRIPTS = {
   "dr:build": "npx declarative-routing build",
-  "dr:build:watch": "npx declarative-routing build --watch",
+  "dr:build:watch": "npx declarative-routing build --watch"
 };
 const OPENAPI_PACKAGES = {
   dependencies: [],
-  devDependencies: ["yaml", "@asteasolutions/zod-to-openapi"],
+  devDependencies: ["yaml", "@asteasolutions/zod-to-openapi"]
 };
 const OPENAPI_SCRIPTS = {
   openapi: "npm run openapi:yaml && npm run openapi:html",
   "openapi:yaml": "ts-node ./src/routes/openapi.ts",
-  "openapi:html": "npx @redocly/cli build-docs openapi-docs.yml",
+  "openapi:html": "npx @redocly/cli build-docs openapi-docs.yml"
 };
 
 export async function setup() {
@@ -58,7 +58,7 @@ export async function setup() {
 
   const packages = [
     ...STD_PACKAGES.dependencies,
-    ...(openapi ? OPENAPI_PACKAGES.dependencies : []),
+    ...(openapi ? OPENAPI_PACKAGES.dependencies : [])
   ];
   await addPackages(packages);
 
@@ -66,7 +66,7 @@ export async function setup() {
 
   const devPackages = [
     ...STD_PACKAGES.devDependencies,
-    ...(openapi ? OPENAPI_PACKAGES.devDependencies : []),
+    ...(openapi ? OPENAPI_PACKAGES.devDependencies : [])
   ];
   await addPackages(devPackages, true);
 
@@ -74,14 +74,14 @@ export async function setup() {
 
   const scripts = {
     ...STD_SCRIPTS,
-    ...(openapi ? OPENAPI_SCRIPTS : {}),
+    ...(openapi ? OPENAPI_SCRIPTS : {})
   };
   addPackageJSONScripts(scripts);
 
   if (config.openapi) {
     spinner.text = "Setting up OpenAPI.";
     await buildFileFromTemplate(
-      "nextjs/openapi.template.ts",
+      "shared/openapi.template.ts",
       config.openapi?.template,
       {}
     );
@@ -93,7 +93,7 @@ export async function setup() {
 
   spinner.text = "Building README.";
 
-  await buildREADME(pkgMgr);
+  await buildREADME(pkgMgr, config.mode);
 
   spinner.succeed(`Done.`);
 
@@ -130,20 +130,20 @@ export async function setupNext() {
       type: "text",
       name: "src",
       message: "What is your source directory?",
-      initial: src,
+      initial: src
     },
     {
       type: "text",
       name: "routes",
       message: "Where do you want the routes directory?",
-      initial: routes,
+      initial: routes
     },
     {
       type: "confirm",
       name: "openapi",
       message: "Add OpenAPI output?",
-      initial: true,
-    },
+      initial: true
+    }
   ]);
 
   writeConfig({
@@ -154,9 +154,9 @@ export async function setupNext() {
       response.openapi ?? true
         ? {
             target: `${routes}/openapi.ts`,
-            template: `${routes}/openapi.template.ts`,
+            template: `${routes}/openapi.template.ts`
           }
-        : undefined,
+        : undefined
   });
 
   await setup();

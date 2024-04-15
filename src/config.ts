@@ -11,11 +11,11 @@ const ConfigSchema = z.object({
   openapi: z
     .object({
       target: z.string(),
-      template: z.string(),
+      template: z.string()
     })
     .optional(),
   importPathPrefix: z.string().optional(),
-  stripRoutePrefix: z.string().optional(),
+  stripRoutePrefix: z.string().optional()
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

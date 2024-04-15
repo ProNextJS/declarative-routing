@@ -8,12 +8,13 @@ import {
   NavLink,
   useParams as useParmsRR,
   useSearchParams as useSearchParamsRR,
-  RouteObject,
+  type RouteObject
 } from "react-router-dom";
+import React from "react";
 
 type LinkProps = Parameters<typeof Link>[0];
 type NavLinkProps = Parameters<typeof NavLink>[0];
-export type RouteBaseDefinition = RouteInfo<ZodSchema, ZodSchema>
+export type RouteBaseDefinition = RouteInfo<ZodSchema, ZodSchema>;
 
 export type RouteInfo<
   Params extends z.ZodSchema,
@@ -33,8 +34,8 @@ export type RouteBuilder<
   useParams: () => z.output<Params>;
   useSearchParams: () => z.output<Search>;
   useSetSearch: () => (search?: z.input<Search>) => void;
-  title: string
-  route: string
+  title: string;
+  route: string;
 
   Link: React.FC<
     Omit<LinkProps, "to"> &
@@ -105,7 +106,6 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
       .map((e) => e(params))
       .filter((v) => v)
       .join("/");
-
     if (catchAllSegment) {
       return "/" + p + catchAllSegment(params);
     } else {
@@ -143,6 +143,7 @@ export function makeRoute<
     const safeSearch = info.search
       ? info.search?.safeParse(search || {})
       : null;
+
     if (info.search && !safeSearch?.success) {
       throw new Error(
         `Invalid search params for route ${info.name}: ${safeSearch?.error.message}`
@@ -151,11 +152,12 @@ export function makeRoute<
 
     const baseUrl = fn(checkedParams);
     const searchString = search && queryString.stringify(search);
+
     return [baseUrl, searchString ? `?${searchString}` : ""].join("");
   };
 
-  routeBuilder.title = info.name
-  routeBuilder.route = route
+  routeBuilder.title = info.name;
+  routeBuilder.route = route;
 
   routeBuilder.useParams = function useParams(): z.output<Params> {
     const res = info.params.safeParse(useParmsRR());
@@ -358,13 +360,13 @@ export function parseRoutes<T extends RouteNodeInfer<S>[], S extends string>(
           {
             name,
             params,
-            search,
+            search
           }
         ) as unknown as keyof RouteNodeArrToMap<T>;
       if (rest.children) {
         return {
           ...rest,
-          children: buildRoutes(rest.children, [...pathStack, rest.path]),
+          children: buildRoutes(rest.children, [...pathStack, rest.path])
         };
       }
       return rest;
@@ -375,6 +377,6 @@ export function parseRoutes<T extends RouteNodeInfer<S>[], S extends string>(
 
   return {
     routes: simplifiedRoutes,
-    declarativeRoutes,
+    declarativeRoutes
   };
 }

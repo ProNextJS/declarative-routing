@@ -6,11 +6,11 @@ import path from "path";
 import fs from "fs-extra";
 
 import { writeConfig, getConfig } from "../config";
-import { addPackages, getPackageManager } from "../shared";
+import { addPackages, getPackageManager } from "../shared/utils";
 import { buildFileFromTemplate } from "../template";
 
 const STD_PACKAGES = {
-  dependencies: ["zod", "query-string"],
+  dependencies: ["zod", "query-string"]
 };
 
 export async function setup() {
@@ -40,7 +40,7 @@ export async function setup() {
     "react-router/README.md.template",
     "./DR-README.md",
     {
-      routes,
+      routes
     }
   );
 
@@ -61,13 +61,13 @@ export async function setupReactRouter() {
       type: "text",
       name: "routes",
       message: "Where do you want the routes directory?",
-      initial: "./src/routes",
-    },
+      initial: "./src/routes"
+    }
   ]);
 
   writeConfig({
     mode: "react-router",
-    routes: response.routes,
+    routes: response.routes
   });
 
   await setup();

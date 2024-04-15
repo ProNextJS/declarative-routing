@@ -2,8 +2,8 @@
 import { Command } from "commander";
 
 import { init } from "./init";
-import { build } from "./nextjs/build";
-import { getPackageInfo } from "./shared";
+import { build } from "./shared/build";
+import { getPackageInfo } from "./shared/utils";
 
 process.on("SIGINT", () => process.exit(0));
 process.on("SIGTERM", () => process.exit(0));

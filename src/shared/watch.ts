@@ -2,7 +2,7 @@ import {
   updateBuildFiles,
   parseInfoFile,
   checkRouteFile,
-  removeFileFromCache,
+  removeFileFromCache
 } from "./build-tools";
 
 const fileMap: Record<string, boolean> = {};

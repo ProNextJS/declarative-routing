@@ -23,8 +23,8 @@ export function addPackageJSONScripts(scripts: Record<string, string>) {
   const newPackageJson = {
     ...packageJson,
     scripts: {
-      ...packageJson.scripts,
-    },
+      ...packageJson.scripts
+    }
   };
   for (const key of Object.keys(scripts)) {
     if (!newPackageJson.scripts[key]) {
@@ -34,7 +34,7 @@ export function addPackageJSONScripts(scripts: Record<string, string>) {
 
   return fs.writeJSONSync(packageJsonPath, newPackageJson, {
     spaces: 2,
-    EOL: "\n",
+    EOL: "\n"
   });
 }
 
@@ -43,7 +43,7 @@ export async function getPackageManager(): Promise<
 > {
   const packageManager = await detect({
     programmatic: true,
-    cwd: process.cwd(),
+    cwd: process.cwd()
   });
 
   if (packageManager === "yarn@berry") return "yarn";
@@ -64,7 +64,7 @@ export async function addPackages(packages: string[], dev = false) {
     await execa(pkgMgr, [
       pkgMgr === "npm" ? "install" : "add",
       "-D",
-      ...packages,
+      ...packages
     ]);
   } else {
     await execa(pkgMgr, [pkgMgr === "npm" ? "install" : "add", ...packages]);
@@ -102,7 +102,7 @@ export function showDiff(report: string) {
       width: 80,
       padding: { left: 2, right: 2, top: 0, bottom: 0 },
       borderStyle: "round",
-      dimBorder: true,
+      dimBorder: true
     })
   );
 }

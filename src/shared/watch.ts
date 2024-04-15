@@ -1,3 +1,4 @@
+import { getConfig } from "../config";
 import {
   updateBuildFiles,
   parseInfoFile,
@@ -26,9 +27,34 @@ const checkForFinishedProcessing = async () => {
   }
 };
 
-const isInfoFile = (path: string) => path.match(/\.info\.ts(x?)$/);
-const isRouteFile = (path: string) =>
-  path.match(/(page|route)\.(js|jsx|ts|tsx)$/);
+const isInfoFile = (path: string) => {
+  const config = getConfig();
+  let matcher: RegExp;
+  switch (config.mode) {
+    case "qwikcity":
+      matcher = /routeInfo\.ts$/;
+      break;
+    default:
+      matcher = /\.info\.ts(x?)$/;
+      break;
+  }
+
+  return path.match(matcher);
+};
+const isRouteFile = (path: string) => {
+  const config = getConfig();
+  let matcher: RegExp;
+  switch (config.mode) {
+    case "qwikcity":
+      matcher = /index\.(js|jsx|ts|tsx)$/;
+      break;
+
+    default:
+      matcher = /(page|route)\.(js|jsx|ts|tsx)$/;
+      break;
+  }
+  return path.match(matcher);
+};
 
 export const processFile = (path: string) => {
   if (realTime) {

@@ -1,6 +1,6 @@
 ## Declarative Routes
 
-`declarative-routing` sets up an optional declarative routing system for React projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
+`declarative-routing` sets up an optional declarative routing system for React or QwikCity projects. For NextJS, it maintains a global list of both pages and API routes and provides components and functions to easily navigate to pages, or make API requests.
 
 ## What are Declarative Routes?
 
@@ -13,6 +13,8 @@ With typesafe routing you still have to deal with urls; `<Link to={`/product/${p
 For NextJS projects follow the [NextJS installation instructions](./docs/nextjs.md).
 
 For React Router projects follow the [React Router installation instructions](./docs/react-router.md).
+
+For QwikCity projects follow the [QwikCiy installation instructions](./docs/qwikcity.md).
 
 # Credit where credit is due
 

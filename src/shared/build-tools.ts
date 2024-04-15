@@ -116,8 +116,19 @@ export async function parseInfoFile(fpath: string) {
   const config = getConfig();
   const { importPathPrefix } = config;
 
+  let _importPathPrefix: string;
+
+  switch (config.mode) {
+    case "qwikcity":
+      _importPathPrefix = importPathPrefix || "~/routes";
+      break;
+    default:
+      _importPathPrefix = importPathPrefix || "@/app";
+      break;
+  }
+
   const newPath: RouteInfo = {
-    importPath: `${importPathPrefix || "@/app"}/${fpath}`.replace(/.ts$/, ""),
+    importPath: `${_importPathPrefix}/${fpath}`.replace(/.ts$/, ""),
     infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],
@@ -144,7 +155,17 @@ export async function parseInfoFile(fpath: string) {
 }
 
 async function createInfoFile(config: Config, fpath: string) {
-  const infoFile = fpath.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
+  let infoFile: string;
+
+  switch (config.mode) {
+    case "qwikcity":
+      infoFile = path.join(path.dirname(fpath), "routeInfo.ts");
+      break;
+    default:
+      infoFile = fpath.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
+      break;
+  }
+
   const absPath = absoluteFilePath(config, infoFile);
   const pathElements = path
     .parse(infoFile)
@@ -188,7 +209,16 @@ async function createInfoFile(config: Config, fpath: string) {
 
 export async function checkRouteFile(path: string) {
   const config = getConfig();
-  const infoFile = path.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
+  let infoFile: string;
+
+  switch (config.mode) {
+    case "qwikcity":
+      infoFile = path.split("/").slice(0, -1).concat("routeInfo.ts").join("/");
+      break;
+    default:
+      infoFile = path.replace(/\.(js|jsx|ts|tsx)$/, ".info.ts");
+      break;
+  }
   const absPath = absoluteFilePath(config, infoFile);
   if (!fs.existsSync(absPath)) {
     await createInfoFile(config, path);
@@ -200,20 +230,32 @@ export async function checkRouteFile(path: string) {
 export async function buildFiles(silent: boolean = false) {
   const config = getConfig();
 
+  let routePatterns: string[];
+  switch (config.mode) {
+    case "qwikcity":
+      routePatterns = [
+        "**/index.{jsx,tsx}",
+        "**/index@*.{jsx,tsx}",
+        "index.{jsx,tsx}",
+        "index@*.{jsx,tsx}"
+      ];
+      break;
+    default:
+      routePatterns = [
+        "**/page.{js,ts,jsx,tsx}",
+        "**/route.{js,ts,jsx,tsx}",
+        "page.{js,ts,jsx,tsx}",
+        "route.{js,ts,jsx,tsx}"
+      ];
+      break;
+  }
+
   // Add new .info files to existing routes
-  const routes = await glob(
-    [
-      "**/page.{js,ts,jsx,tsx}",
-      "**/route.{js,ts,jsx,tsx}",
-      "page.{js,ts,jsx,tsx}",
-      "route.{js,ts,jsx,tsx}"
-    ],
-    {
-      cwd: config.src,
-      posix: true,
-      ignore
-    }
-  );
+  const routes = await glob(routePatterns, {
+    cwd: config.src,
+    posix: true,
+    ignore
+  });
 
   let routesAdded = 0;
   for (const route of routes) {
@@ -225,20 +267,27 @@ export async function buildFiles(silent: boolean = false) {
     console.log(`Added ${routesAdded} new info files`);
   }
 
+  let infoPatterns: string[];
+  switch (config.mode) {
+    case "qwikcity":
+      infoPatterns = ["**/routeInfo.{js,ts,jsx,tsx}"];
+      break;
+    default:
+      infoPatterns = [
+        "**/page.info.{js,ts,jsx,tsx}",
+        "**/route.info.{js,ts,jsx,tsx}",
+        "page.info.{js,ts,jsx,tsx}",
+        "route.info.{js,ts,jsx,tsx}"
+      ];
+      break;
+  }
+
   // Parse all .info files
-  const infoFiles = await glob(
-    [
-      "**/page.info.{js,ts,jsx,tsx}",
-      "**/route.info.{js,ts,jsx,tsx}",
-      "page.info.{js,ts,jsx,tsx}",
-      "route.info.{js,ts,jsx,tsx}"
-    ],
-    {
-      cwd: config.src,
-      posix: true,
-      ignore
-    }
-  );
+  const infoFiles = await glob(infoPatterns, {
+    cwd: config.src,
+    posix: true,
+    ignore
+  });
 
   let routeCount = 0;
   for (const info of infoFiles) {
@@ -321,7 +370,7 @@ async function writeOpenAPI(config: Config) {
 
 export async function buildREADME(
   pkgMgr: string,
-  mode: "nextjs" | "react-router"
+  mode: "nextjs" | "react-router" | "qwikcity"
 ) {
   const sortedPaths = Object.values(paths).sort((a, b) =>
     a.importPath.localeCompare(b.importPath)

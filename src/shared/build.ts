@@ -22,19 +22,30 @@ export const build = new Command()
 
     if (opts.watch) {
       const config = getConfig();
-      chokidar
-        .watch(
-          [
+      let patterns: string[];
+      switch (config.mode) {
+        case "qwikcity":
+          patterns = [
+            "./**/routeInfo.(ts|tsx)",
+            "./**/index.(jsx|tsx)",
+            "./**/index@*.(jsx|tsx)"
+          ];
+          break;
+        default:
+          patterns = [
             "./**/(route|page).info.(ts|tsx)",
             "./**/(route|page).(js|jsx|ts|tsx)"
-          ],
-          {
-            ignored: /(^|[\/\\])\../,
-            persistent: true,
-            cwd: config.src,
-            usePolling: true
-          }
-        )
+          ];
+          break;
+      }
+
+      chokidar
+        .watch(patterns, {
+          ignored: /(^|[\/\\])\../,
+          persistent: true,
+          cwd: config.src,
+          usePolling: true
+        })
         .on("ready", () => {
           finishedProcessing();
         })

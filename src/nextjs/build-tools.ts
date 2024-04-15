@@ -18,7 +18,7 @@ type RouteInfo = {
 
 const paths: Record<string, RouteInfo> = {};
 
-const ignore = ['**/node_modules/**', 'dist/**', '**/dist/**'];
+const ignore = ["**/node_modules/**", "dist/**", "**/dist/**"];
 
 const VERB_KEYS: Record<string, string[]> = {
   GET: ["result"],
@@ -29,6 +29,16 @@ const VERB_KEYS: Record<string, string[]> = {
 
 export function removeFileFromCache(fpath: string) {
   delete paths[fpath];
+}
+
+function fixPath(config: Config, path: string) {
+  const { stripRoutePrefix } = config;
+  if (!stripRoutePrefix) return path;
+  if (path === `/${stripRoutePrefix}`) return "/";
+  return path.replace(
+    stripRoutePrefix.endsWith("/") ? stripRoutePrefix : stripRoutePrefix + "/",
+    ""
+  );
 }
 
 async function writeRoutes(silent: boolean = false) {
@@ -61,11 +71,14 @@ async function writeRoutes(silent: boolean = false) {
   }[] = [];
   for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
-      pageRoutes.push({ pathTemplate, importKey });
+      pageRoutes.push({
+        pathTemplate: fixPath(config, pathTemplate),
+        importKey,
+      });
     } else {
       for (const verb of verbs) {
         apiRoutes.push({
-          pathTemplate,
+          pathTemplate: fixPath(config, pathTemplate),
           importKey,
           verb,
           upperVerb: upperFirst(verb.toLowerCase()),
@@ -101,10 +114,10 @@ async function writeRoutes(silent: boolean = false) {
 
 export async function parseInfoFile(fpath: string) {
   const config = getConfig();
-  const {importPathPrefix} = config;
+  const { importPathPrefix } = config;
 
   const newPath: RouteInfo = {
-    importPath: `${importPathPrefix || '@/app'}/${fpath}`.replace(/.ts$/, ""),
+    importPath: `${importPathPrefix || "@/app"}/${fpath}`.replace(/.ts$/, ""),
     infoPath: `/${fpath}`,
     importKey: "",
     verbs: [],

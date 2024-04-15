@@ -13,6 +13,7 @@ import {
 
 type LinkProps = Parameters<typeof Link>[0];
 type NavLinkProps = Parameters<typeof NavLink>[0];
+export type RouteBaseDefinition = RouteInfo<ZodSchema, ZodSchema>
 
 export type RouteInfo<
   Params extends z.ZodSchema,
@@ -32,6 +33,8 @@ export type RouteBuilder<
   useParams: () => z.output<Params>;
   useSearchParams: () => z.output<Search>;
   useSetSearch: () => (search?: z.input<Search>) => void;
+  title: string
+  route: string
 
   Link: React.FC<
     Omit<LinkProps, "to"> &
@@ -150,6 +153,9 @@ export function makeRoute<
     const searchString = search && queryString.stringify(search);
     return [baseUrl, searchString ? `?${searchString}` : ""].join("");
   };
+
+  routeBuilder.title = info.name
+  routeBuilder.route = route
 
   routeBuilder.useParams = function useParams(): z.output<Params> {
     const res = info.params.safeParse(useParmsRR());

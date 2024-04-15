@@ -2,13 +2,8 @@
 Derived from: https://www.flightcontrol.dev/blog/fix-nextjs-routing-to-have-full-type-safety
 */
 import { z } from "zod";
-import {
-  useParams as useNextParams,
-  useSearchParams as useNextSearchParams
-} from "next/navigation";
 import queryString from "query-string";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 type LinkProps = Parameters<typeof Link>[0];
 
@@ -39,8 +34,6 @@ export type PutInfo<Body extends z.ZodSchema, Result extends z.ZodSchema> = {
 };
 
 type FetchOptions = Parameters<typeof fetch>[1];
-
-type PushOptions = Parameters<ReturnType<typeof useRouter>["push"]>[1];
 
 type CoreRouteElements<
   Params extends z.ZodSchema,
@@ -112,19 +105,13 @@ type DeleteRouteBuilder<Params extends z.ZodSchema> = CoreRouteElements<
   (p?: z.input<Params>, options?: FetchOptions): Promise<void>;
 };
 
-type RouteBuilder<
+export type RouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
 > = CoreRouteElements<Params, Search> & {
   (p?: z.input<Params>, search?: z.input<Search>): string;
 
-  useParams: () => z.output<Params>;
-  useSearchParams: () => z.output<Search>;
-  usePush: () => (
-    params: z.input<Params>,
-    search?: z.input<Search>,
-    options?: PushOptions
-  ) => void;
+  routeName: string;
 
   Link: React.FC<
     Omit<LinkProps, "href"> &
@@ -424,33 +411,7 @@ export function makeRoute<
     info
   ) as RouteBuilder<Params, Search>;
 
-  urlBuilder.useParams = function useParams(): z.output<Params> {
-    const res = info.params.safeParse(useNextParams());
-    if (!res.success) {
-      throw new Error(
-        `Invalid route params for route ${info.name}: ${res.error.message}`
-      );
-    }
-    return res.data;
-  };
-
-  if (info?.search) {
-    urlBuilder.useSearchParams = function useSearchParams(): z.output<Search> {
-      const res = info.search!.safeParse(
-        convertURLSearchParamsToObject(useNextSearchParams())
-      );
-      if (!res.success) {
-        throw new Error(
-          `Invalid search params for route ${info.name}: ${res.error.message}`
-        );
-      }
-      return res.data;
-    };
-  } else {
-    urlBuilder.useSearchParams = function useSearchParams() {
-      throw new Error(`Route ${info.name} does not have search params`);
-    };
-  }
+  urlBuilder.routeName = info.name;
 
   urlBuilder.ParamsLink = function RouteLink({
     params: linkParams,
@@ -491,40 +452,10 @@ export function makeRoute<
     );
   };
 
-  urlBuilder.usePush = function usePush() {
-    const { push } = useRouter();
-    return (
-      p: z.input<Params>,
-      search?: z.input<Search>,
-      options?: PushOptions
-    ) => {
-      push(urlBuilder(p, search), options);
-    };
-  };
-
   urlBuilder.params = undefined as z.output<Params>;
   urlBuilder.paramsSchema = info.params;
   urlBuilder.search = undefined as z.output<Search>;
   urlBuilder.searchSchema = info.search;
 
   return urlBuilder;
-}
-
-function convertURLSearchParamsToObject(
-  params: Readonly<URLSearchParams> | null
-): Record<string, string | string[]> {
-  if (!params) {
-    return {};
-  }
-
-  const obj: Record<string, string | string[]> = {};
-  // @ts-ignore
-  for (const [key, value] of params.entries()) {
-    if (params.getAll(key).length > 1) {
-      obj[key] = params.getAll(key);
-    } else {
-      obj[key] = value;
-    }
-  }
-  return obj;
 }

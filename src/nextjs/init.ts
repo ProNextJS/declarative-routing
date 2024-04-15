@@ -50,6 +50,12 @@ export async function setup() {
     {}
   );
 
+  await buildFileFromTemplate(
+    "nextjs/hooks.ts",
+    path.resolve(routes, "./hooks.ts"),
+    {}
+  );
+
   spinner.text = "Getting package mananger.";
 
   const pkgMgr = await getPackageManager();
@@ -112,8 +118,8 @@ export async function setup() {
 
   console.log(
     `\nYour next step is to read the ${red(
-      italic(bold("DR-README.md"))
-    )} file and follow the post setup tasks.`
+      italic(bold("README.md"))
+    )} file in the routes directory and follow the post setup tasks.`
   );
 }
 

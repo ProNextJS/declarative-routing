@@ -49,6 +49,29 @@ useEffect(() => {
 
 This is the equivalent of doing `fetch('/api/product/abc123')` but with typesafety, and you never have to remember the URL. If the API moves, the typesafe route will be updated automatically.
 
+## Using typed hooks
+
+The system provides three typed hooks to use in your application `usePush`, `useParams`, and `useSeachParams`.
+
+* `usePush` wraps the NextJS `useRouter` hook and returns a typed version of the `push` function.
+* `useParams` wraps `useNextParams` and returns the typed parameters for the route.
+* `useSearchParams` wraps `useNextSearchParams` and returns the typed search parameters for the route.
+
+For each hook you give the route to get the appropriate data back.
+
+```ts
+import { Search } from "@/routes";
+import { useSearchParams } from "@/routes/hooks";
+
+export default MyClientComponent() {
+  const searchParams = useSearchParams(Search);
+  return <div>{searchParams.query}</div>;
+}
+```
+
+We had to extract the hooks into a seperate module because NextJS would not allow the routes to include hooks directly if
+they were used by React Server Components (RSCs).
+
 # Configure declarative-routing
 
 After running `npx declarative-routing init`, you don't need to configure anything to use it.

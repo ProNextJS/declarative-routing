@@ -6,7 +6,7 @@ import { glob } from "glob";
 import { getConfig, absoluteFilePath } from "../config";
 import type { Config } from "../config";
 import { buildFileFromTemplate, buildStringFromTemplate } from "../template";
-import { getDiffContent, upperFirst, jsClean, showDiff } from "../shared";
+import { getDiffContent, upperFirst, jsClean, showDiff } from "../shared/utils";
 
 type RouteInfo = {
   importPath: string;
@@ -378,9 +378,15 @@ export async function buildREADME(
     }
   }
 
-  await buildFileFromTemplate(`${mode}/README.md.template`, "./DR-README.md", {
-    tasks,
-    routes,
-    packageManager: pkgMgr === "npm" ? "npm run" : pkgMgr
-  });
+  const config = getConfig();
+
+  await buildFileFromTemplate(
+    `${mode}/README.md.template`,
+    path.resolve(config.routes, "./README.md"),
+    {
+      tasks,
+      routes,
+      packageManager: pkgMgr === "npm" ? "npm run" : pkgMgr
+    }
+  );
 }

@@ -6,7 +6,7 @@ Initialize your NextJS application:
 npx declarative-routing init
 ```
 
-This will generate an `@/routes` directory that you can use to navigate to pages and make API requests. It also generates a `DR-README.md` file in the root of your project that contains information about how to use the system.
+This will generate an `@/routes` directory that you can use to navigate to pages and make API requests. It also generates a `README.md` file in the routes directory that contains information about how to use the system.
 
 You can update the files when the route paths change using the `build` command. This will update the `@/routes` directory to reflect the new paths. For example, if you add a new page, you can run the following command to update the routes:
 

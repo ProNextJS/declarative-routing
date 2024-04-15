@@ -59,7 +59,12 @@ async function writeRoutes(silent: boolean = false) {
   }[] = [];
   for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
-      pageRoutes.push({ pathTemplate, importKey });
+      const replacePath = (stripRoutePrefix: string | undefined) => {
+        if (!stripRoutePrefix) return pathTemplate
+        if (pathTemplate === "/"+stripRoutePrefix) return '/'
+        return pathTemplate.replace(stripRoutePrefix.endsWith('/') ? stripRoutePrefix : stripRoutePrefix+"/", '')
+      }
+      pageRoutes.push({ pathTemplate: replacePath(config.stripRoutePrefix), importKey })
     } else {
       for (const verb of verbs) {
         apiRoutes.push({

@@ -7,6 +7,7 @@ import { type PackageJson } from "type-fest";
 import { hasConfig } from "./config";
 
 import { setupNext } from "./nextjs/init";
+import { setupQwikCity } from "./qwikcity/init";
 import { setupReactRouter } from "./react-router/init";
 
 export const init = new Command()
@@ -31,6 +32,12 @@ export const init = new Command()
     } else if (packageJson?.dependencies?.["react-router-dom"]) {
       console.log("Setting up React-Router...");
       await setupReactRouter();
+    } else if (
+      packageJson?.dependencies?.["@builder.io/qwik-city"] ||
+      packageJson.devDependencies?.["@builder.io/qwik-city"]
+    ) {
+      console.log("Setting up QwikCity...");
+      await setupQwikCity();
     } else {
       console.log(red("No supported framework detected."));
       console.log(

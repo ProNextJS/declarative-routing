@@ -123,7 +123,7 @@ function createRouteBuilder<
   };
 }
 
-const emptySchema = z.object({});
+export const emptySchema = z.object({});
 
 export function makeRoute<
   Params extends z.ZodSchema,

@@ -14,7 +14,7 @@ For NextJS projects follow the [NextJS installation instructions](https://github
 
 For React Router projects follow the [React Router installation instructions](https://github.com/ProNextJS/declarative-routing/blob/main/docs/react-router.md).
 
-For QwikCity projects follow the [QwikCiy installation instructions](https://github.com/ProNextJS/declarative-routing/blob/main/docs/qwikcity.md).
+For QwikCity projects follow the [QwikCity installation instructions](https://github.com/ProNextJS/declarative-routing/blob/main/docs/qwikcity.md).
 
 # Credit where credit is due
 

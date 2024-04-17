@@ -51,7 +51,7 @@ This is the equivalent of doing `fetch('/api/product/abc123')` but with typesafe
 
 ## Using typed hooks
 
-The system provides three typed hooks to use in your application `usePush`, `useParams`, and `useSeachParams`.
+The system provides three typed hooks to use in your application `usePush`, `useParams`, and `useSearchParams`.
 
 * `usePush` wraps the NextJS `useRouter` hook and returns a typed version of the `push` function.
 * `useParams` wraps `useNextParams` and returns the typed parameters for the route.

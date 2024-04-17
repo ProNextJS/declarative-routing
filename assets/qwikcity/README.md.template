@@ -30,6 +30,25 @@ return (
 
 This is the equivalent of doing `<Link href="/product/abc123">Product abc123</Link>` but with typesafety. And you never have to remember the URL. If the route moves, the typesafe route will be updated automatically.
 
+## Using typed hooks
+
+The system provides two typed hooks to use in your application `useParams`, and `useSearchParams`.
+
+* `useParams` wraps `useLocation` and returns the typed parameters for the route.
+* `useSearchParams` wraps `useLocation` and returns the typed search parameters for the route.
+
+For each hook you give the route to get the appropriate data back.
+
+```ts
+import { Search } from "~/components/declarativeRoutes";
+import { useSearchParams } from "~/components/declarativeRoutes/makeRoute";
+
+export default MyClientComponent() {
+  const searchParams = useSearchParams(Search);
+  return <div>{searchParams.query}</div>;
+}
+```
+
 # Configure declarative-routing
 
 After running `npx declarative-routing init`, you don't need to configure anything to use it.

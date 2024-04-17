@@ -14,14 +14,14 @@ Here are the routes of the application:
 | `{{{this.pathTemplate}}}` | `{{{this.importKey}}}` | `{{{this.usage}}}` |
 {{/each}}
 
-To use the routes, you can import them from `~/components/declarativeRoutes` and use them in your code.
+To use the routes, you can import them from `~/declarativeRoutes` and use them in your code.
 
 # Using the routes in your application
 
 For pages, use the `Link` component (built on top of the `Link` component from `@builder.io/qwik-city`) to link to other pages. For example:
 
 ```tsx
-import { ProductDetail } from "~/components/declarativeRoutes";
+import { ProductDetail } from "~/declarativeRoutes";
 
 return (
   <ProductDetail.Link productId={"abc123"}>Product abc123</ProductDetail.Link>
@@ -40,8 +40,8 @@ The system provides two typed hooks to use in your application `useParams`, and 
 For each hook you give the route to get the appropriate data back.
 
 ```ts
-import { Search } from "~/components/declarativeRoutes";
-import { useSearchParams } from "~/components/declarativeRoutes/makeRoute";
+import { Search } from "~/declarativeRoutes";
+import { useSearchParams } from "~/declarativeRoutes/hooks";
 
 export default MyClientComponent() {
   const searchParams = useSearchParams(Search);
@@ -57,14 +57,14 @@ However, you may want to customize some options to change the behavior of route 
 You can edit `declarative-routing.config.json` in the root of your project. The following options are available:
 
 - `mode`: choose between `react-router`, `nextjs` or `qwikcity`. It is automatically picked on init based on the project type.
-- `routes`: the directory where to place the declarative routes. It is picked from the initial wizard (and defaults to `./src/components/declarativeRoutes`).
+- `routes`: the directory where to place the declarative routes. It is picked from the initial wizard (and defaults to `./src/declarativeRoutes`).
 - `importPathPrefix`: the path prefix to add to the import path of the self-generated route objects, in order to be able to resolve them. It defaults to `@/app`.
 
 # When your routes change
 
-You'll need to run `{{packageManager}} dr:build` to update the generated files. This will update the types and the `~/components/declarativeRoutes` module to reflect the changes.
+You'll need to run `{{packageManager}} dr:build` to update the generated files. This will update the types and the `~/declarativeRoutes` module to reflect the changes.
 
-The way the system works the `routeInfo.ts` files are link to the `~/components/declarativeRoutes/index.ts` file. So changing the Zod schemas for the routes does **NOT** require a rebuild. You need to run the build command when:
+The way the system works the `routeInfo.ts` files are link to the `~/declarativeRoutes/index.ts` file. So changing the Zod schemas for the routes does **NOT** require a rebuild. You need to run the build command when:
 
 - You change the name of the route in the `routeInfo.ts` file
 - You change the location of the route (e.g. `/product` to `/products`)
@@ -82,9 +82,9 @@ Post setup there are some additional tasks that you need to complete to complete
 {{/each}}
 Once you've got that done you can remove this section.
 
-# Why is `makeRoute` copied into the `~/components/declarativeRoutes` module?
+# Why is `makeRoute` copied into the `~/declarativeRoutes` module?
 
-You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `~/components/declarativeRoutes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routing` package. You can modify this file to change the behavior of the routing system.
+You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `~/declarativeRoutes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routing` package. You can modify this file to change the behavior of the routing system.
 
 For example, you might want to change the way the `Link` component works. You can do that by modifying the `makeRoute.tsx` file.
 

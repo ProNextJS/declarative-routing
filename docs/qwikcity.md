@@ -6,9 +6,9 @@ Initialize your QwikCity application:
 npx declarative-routing init
 ```
 
-This will generate an `~/components/declarativeRoutes` directory that you can use to navigate to pages. It also generates a `README.md` file in the routes directory that contains information about how to use the system.
+This will generate an `~/declarativeRoutes` directory that you can use to navigate to pages. It also generates a `README.md` file in the routes directory that contains information about how to use the system.
 
-You can update the files when the route paths change using the `build` command. This will update the `~/components/declarativeRoutes` directory to reflect the new paths. For example, if you add a new page, you can run the following command to update the routes:
+You can update the files when the route paths change using the `build` command. This will update the `~/declarativeRoutes` directory to reflect the new paths. For example, if you add a new page, you can run the following command to update the routes:
 
 ```bash
 npx declarative-routing build
@@ -27,7 +27,7 @@ import { Link } from "@builder.io/qwik-city";
 You can do this:
 
 ```tsx
-import { ProductDetail } from "~/components/declarativeRoutes";
+import { ProductDetail } from "~/declarativeRoutes";
 
 <ProductDetail.Link productId={product.id}>Product</ProductDetail.Link>;
 ```
@@ -38,7 +38,7 @@ This system is opt-in. You can use it for some routes, and not for others. You c
 
 # How it works
 
-Routes are typed using one or more of the methods defined in `~/components/declarativeRoutes/makeRoute`.
+Routes are typed using one or more of the methods defined in `~/declarativeRoutes/makeRoute`.
 
 - `makeRoute` - Used for defining page routes
 
@@ -93,26 +93,26 @@ You can choose to simply use the `makeRoute` functions wherever you choose to de
 
 The automated option is to use the `build` command to generate the routes. This command will generate the routes for you based on the `index.tsx` files in your `.src/routes/` directory. For each `index.tsx` file it will generate a corresponding `routeInfo.ts` file in the same directory.
 
-It will then import those `routeInfo.ts` files into `~/components/declarativeRoutes/index.ts` so that you can import all the routes from `~/components/declarativeRoutes` and use them in your application. Inside `~/components/declarativeRoutes/index.ts` it will generate `makeRoute` invocations for each of the page routes.
+It will then import those `routeInfo.ts` files into `~/declarativeRoutes/index.ts` so that you can import all the routes from `~/declarativeRoutes` and use them in your application. Inside `~/declarativeRoutes/index.ts` it will generate `makeRoute` invocations for each of the page routes.
 
 The /declarativeRoutes/index.ts file imports the `routeInfo.ts` files and exports routes.
 
 ```mermaid
 graph TD;
     paramRoute["/product/[productId]/routeInfo.ts"]
-    indexRoute["~/components/declarativeRoutes/index.ts"]
+    indexRoute["~/declarativeRoutes/index.ts"]
     /routeInfo.ts-->indexRoute;
     paramRoute-->indexRoute;
     indexRoute-->Home;
     indexRoute-->Product;
 ```
 
-Components then import the `~/components/declarativeRoutes` module and use the routes to navigate to pages.
+Components then import the `~/declarativeRoutes` module and use the routes to navigate to pages.
 
 ```mermaid
 graph TD;
     paramRoute["/product/[productId]/index.tsx"]
-    indexRoute["~/components/declarativeRoutes/index.ts"]
+    indexRoute["~/declarativeRoutes/index.ts"]
     indexRoute-->Home;
     indexRoute-->Product;
     paramRoute-->Product;
@@ -126,14 +126,14 @@ And the home page route:
 ```mermaid
 graph TD;
     paramRoute["/index.tsx"]
-    indexRoute["~/components/declarativeRoutes/index.ts"]
+    indexRoute["~/declarativeRoutes/index.ts"]
     indexRoute-->Home;
     indexRoute-->Product;
     paramRoute-->Product;
     paramRoute-.->indexRoute;
 ```
 
-Just imports the `Product` route from `~/components/declarativeRoutes` and uses that to build links to the product pages.
+Just imports the `Product` route from `~/declarativeRoutes` and uses that to build links to the product pages.
 
 ## Manually editing `routeInfo.ts` files
 
@@ -145,19 +145,19 @@ For standard `routeInfo.ts` files you will need to manually edit them to add a `
 
 The `routeInfo.ts` files are used to provide additional information about the routes. For all route types they provide the name of the route (which must be a valid Javascript variable name), the typed route parameters, and the optional route search parameters.
 
-We put the `routeInfo.ts` files in the same directory as the `index.tsx` files so that we can keep all the information about a route in one place. It's the `build` command that creates `routeInfo.ts` files if they are missing, as well as maintains the `index.ts` file in `~/components/declarativeRoutes` that has all the routes.
+We put the `routeInfo.ts` files in the same directory as the `index.tsx` files so that we can keep all the information about a route in one place. It's the `build` command that creates `routeInfo.ts` files if they are missing, as well as maintains the `index.ts` file in `~/declarativeRoutes` that has all the routes.
 
 Why not put all that information into the `index.tsx` files directly you ask?
 
-1. The `index.ts` file in the `~/components/declarativeRoutes` directory imports all the `routeInfo.ts` files from all the routes. If we imported all the `index.tsx` files directly then we would defeat any code splitting that QwikCity does. By importing the `routeInfo.ts` files, we can ensure that the flow of imports is uni-directional. The `index.ts` file imports all the `routeInfo.ts` files, and all the `index.tsx` files import the `index.ts` file. This ensures that the `index.ts` file is the root of the import tree, and that the `index.tsx` files are only imported when they are needed.
+1. The `index.ts` file in the `~/declarativeRoutes` directory imports all the `routeInfo.ts` files from all the routes. If we imported all the `index.tsx` files directly then we would defeat any code splitting that QwikCity does. By importing the `routeInfo.ts` files, we can ensure that the flow of imports is uni-directional. The `index.ts` file imports all the `routeInfo.ts` files, and all the `index.tsx` files import the `index.ts` file. This ensures that the `index.ts` file is the root of the import tree, and that the `index.tsx` files are only imported when they are needed.
 
-## Why not copy the zod schemas into the `~/components/declarativeRoutes/index.ts` file?
+## Why not copy the zod schemas into the `~/declarativeRoutes/index.ts` file?
 
-That would require running the `build` process continuously to keep the `~/components/declarativeRoutes/index.ts` file up to date. We want to avoid that because it would slow down the development process. We only want to run the `build` process when we know that the routes have been added, or moved.
+That would require running the `build` process continuously to keep the `~/declarativeRoutes/index.ts` file up to date. We want to avoid that because it would slow down the development process. We only want to run the `build` process when we know that the routes have been added, or moved.
 
-In the current model you can add search parameters, and the `~/components/declarativeRoutes/index.ts` file will not need to be updated. It will only need to be updated when the route paths change.
+In the current model you can add search parameters, and the `~/declarativeRoutes/index.ts` file will not need to be updated. It will only need to be updated when the route paths change.
 
-# Why is `makeRoute` copied into the `~/components/declarativeRoutes` directory?
+# Why is `makeRoute` copied into the `~/declarativeRoutes` directory?
 
 You **own** this routing system once you install it. And we anticipate as part of that ownership you'll want to customize the routing system. That's why we create a `makeRoute.tsx` file in the `@routes` module. This file is a copy of the `makeRoute.tsx` file from the `declarative-routing` package. You can modify this file to change the behavior of the routing system.
 

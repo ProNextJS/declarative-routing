@@ -6,7 +6,7 @@
 
 Typesafe routing is a way to ensure that your routes are structured properly; the parameters in the URL are correct and a route handler exists for that route. Declarative routing goes to the next step and ensures that your link is going to the correct route.
 
-With typesafe routing you still have to deal with urls; `<Link to={/product/${product.id}}>Product</Link>`. With declarative routing you can use a component that is typed to the route, and that will generate the correct URL for you. `<ProductDetail.Link productId={product.id}>Product</ProductDetail.Link>`. Later on, if the route changes, or the parameters change, the `ProductDetail.Link` component will be updated to reflect that everwhere it is used in your application.
+With typesafe routing you still have to deal with urls; `` <Link to={`/product/${product.id}`}>Product</Link> ``. With declarative routing you can use a component that is typed to the route, and that will generate the correct URL for you. `<ProductDetail.Link productId={product.id}>Product</ProductDetail.Link>`. Later on, if the route changes, or the parameters change, the `ProductDetail.Link` component will be updated to reflect that everwhere it is used in your application.
 
 ## Installation
 

@@ -39,6 +39,12 @@ export async function setup() {
     {}
   );
 
+  await buildFileFromTemplate(
+    "qwikcity/hooks.ts",
+    path.resolve(routes, "./hooks.ts"),
+    {}
+  );
+
   spinner.text = "Getting package mananger.";
 
   const pkgMgr = await getPackageManager();
@@ -90,7 +96,7 @@ export async function setup() {
 
 export async function setupQwikCity() {
   const src = "./src/routes";
-  const routes = "./src/components/declarativeRoutes";
+  const routes = "./src/declarativeRoutes";
 
   const response = await prompts([
     {

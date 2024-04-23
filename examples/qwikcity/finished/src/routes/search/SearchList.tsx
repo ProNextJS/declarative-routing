@@ -9,9 +9,9 @@ import { useSearchParams } from "~/declarativeRoutes/hooks";
 export default component$<{
   pokemon: Pokemon[];
 }>(({ pokemon: initialPokemon }) => {
-  const searchParams = useSearchParams(Search);
+  const { q } = useSearchParams(Search);
 
-  const query = useSignal(searchParams.q ?? "");
+  const query = useSignal(q ?? "");
   const pokemon = useSignal(initialPokemon);
 
   const search = $(async () => {

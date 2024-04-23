@@ -5,6 +5,6 @@ export const Route = {
   params: z.object({}),
   search: z.object({
     q: z.string().optional(),
-    limit: z.number().optional(),
+    limit: z.coerce.number().optional(),
   }),
 };

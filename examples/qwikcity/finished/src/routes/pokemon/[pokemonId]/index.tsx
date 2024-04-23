@@ -10,12 +10,12 @@ export const useGetPokemon = routeLoader$(async ({ params }) => {
 });
 
 export default component$(() => {
-  const params = useParams(PokemonPokemonId);
+  const { pokemonId } = useParams(PokemonPokemonId);
   const pokemon = useGetPokemon();
 
   return (
     <main>
-      <PokemonInfo id={+params.pokemonId} pokemon={pokemon.value} />
+      <PokemonInfo id={+pokemonId} pokemon={pokemon.value} />
     </main>
   );
 });

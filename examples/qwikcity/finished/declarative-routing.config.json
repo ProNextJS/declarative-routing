@@ -1,0 +1,5 @@
+{
+  "mode": "qwikcity",
+  "src": "./src/routes",
+  "routes": "./src/declarativeRoutes"
+}

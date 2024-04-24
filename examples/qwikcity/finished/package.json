@@ -1,0 +1,58 @@
+{
+  "name": "my-qwik-empty-starter",
+  "description": "App with Routing built-in ready to create your app",
+  "engines": {
+    "node": "^18.17.0 || ^20.3.0 || >=21.0.0"
+  },
+  "engines-annotation": "Mostly required by sharp which needs a Node-API v9 compatible runtime",
+  "private": true,
+  "trustedDependencies": [
+    "sharp"
+  ],
+  "trustedDependencies-annotation": "Needed for bun to allow running install scripts",
+  "type": "module",
+  "scripts": {
+    "build": "qwik build",
+    "build.client": "vite build",
+    "build.preview": "vite build --ssr src/entry.preview.tsx",
+    "build.types": "tsc --incremental --noEmit",
+    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
+    "dev": "vite --mode ssr",
+    "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
+    "fmt": "prettier --write .",
+    "fmt.check": "prettier --check .",
+    "lint": "eslint \"src/**/*.ts*\"",
+    "preview": "qwik build preview && vite preview --open",
+    "start": "vite --open --mode ssr",
+    "qwik": "qwik",
+    "dr:build": "npx declarative-routing build",
+    "dr:build:watch": "npx declarative-routing build --watch"
+  },
+  "devDependencies": {
+    "@builder.io/qwik": "^1.5.2",
+    "@builder.io/qwik-city": "^1.5.2",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@types/eslint": "^8.56.6",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.57.0",
+    "eslint-plugin-qwik": "^1.5.2",
+    "postcss": "^8.4.31",
+    "prettier": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.5.4",
+    "tailwindcss": "3.3.3",
+    "typescript": "5.3.3",
+    "undici": "*",
+    "vite": "^5.1.6",
+    "vite-tsconfig-paths": "^4.2.1"
+  },
+  "dependencies": {
+    "clsx": "^2.1.0",
+    "query-string": "^9.0.0",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.22.5"
+  }
+}

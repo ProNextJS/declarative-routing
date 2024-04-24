@@ -15,7 +15,7 @@
   "type": "module",
   "exports": "./dist/index.js",
   "scripts": {
-    "prepublish": "npm build",
+    "prepublish": "npm run build",
     "dev": "tsx src/cli.ts",
     "build": "tsup",
     "test": "exit 1"

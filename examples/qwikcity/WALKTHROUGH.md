@@ -9,7 +9,7 @@ Pull down the `starter` folder.
 Run `npx declarative-routing init`
 
 - This will then ask you where your `routes` and defaults to `./src/routes` which is where QwikCity expects them.
-- Next it will ask you where you would like to place the files for declarative routes and defaults to `./src/declarativeRoutes`.
+- Next it will ask you where you would like to place the files for declarative routes and defaults to `./src/components/declarativeRoutes`.
 
 ### Declarative Route Overview
 
@@ -85,7 +85,13 @@ with
 <Home.Link class='font-extrabold'>Home</Home.Link>
 ```
 
-and
+Importing from:
+
+```tsx
+import { Home, Search } from "~/components/declarativeRoutes";
+```
+
+And replace:
 
 ```tsx
 <Link href='/search' class='font-light'>
@@ -116,6 +122,8 @@ with
   <PokemonCard pokemon={p} />
 </PokemonPokemonId.Link>
 ```
+
+You can rename this from `PokemonPokemonId` to `PokemonDetail` if you like by changing the `name` key in the `routeInfo.ts` file of `~/routes/pokemon/[pokemonId]`. Then you need to run `pnpm dr:build` to update the generated files.
 
 ### src/components/SelectableGrid.tsx
 

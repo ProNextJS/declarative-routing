@@ -9,7 +9,7 @@ Pull down the `starter` folder.
 Run `npx declarative-routing init`
 
 - This will then ask you where your `routes` and defaults to `./src/routes` which is where QwikCity expects them.
-- Next it will ask you where you would like to place the files for declarative routes and defaults to `./src/components/declarativeRoutes`.
+- Next it will ask you where you would like to place the files for declarative routes and defaults to `./src/declarativeRoutes`.
 
 ### Declarative Route Overview
 
@@ -88,7 +88,7 @@ with
 Importing from:
 
 ```tsx
-import { Home, Search } from "~/components/declarativeRoutes";
+import { Home, Search } from "~/declarativeRoutes";
 ```
 
 And replace:

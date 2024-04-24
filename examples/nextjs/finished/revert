@@ -1,0 +1,5 @@
+#!/bin/sh
+find . -name "route.info.ts" | xargs rm
+find . -name "page.info.ts" | xargs rm
+git reset --hard HEAD
+rm -fr declarative-routing.config.json src/routes/

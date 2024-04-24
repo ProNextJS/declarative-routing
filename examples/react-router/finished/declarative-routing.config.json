@@ -1,0 +1,4 @@
+{
+  "mode": "react-router",
+  "routes": "./src/routes"
+}

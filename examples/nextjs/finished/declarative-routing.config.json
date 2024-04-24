@@ -1,0 +1,5 @@
+{
+  "mode": "nextjs",
+  "src": "./src/app",
+  "routes": "./src/routes"
+}

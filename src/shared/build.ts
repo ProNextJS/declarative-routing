@@ -50,10 +50,11 @@ export const build = new Command()
           finishedProcessing();
         })
         .on("all", async (event, path) => {
+          const posixPath = path.replace(/\\/g, "/");
           if (event === "unlink" || event === "unlinkDir") {
-            fileRemoved(path);
+            fileRemoved(posixPath);
           } else if (event === "add" || event === "change") {
-            processFile(path);
+            processFile(posixPath);
           }
         });
     } else {

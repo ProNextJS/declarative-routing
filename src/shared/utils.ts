@@ -91,7 +91,19 @@ export function getDiffContent(input: string, output: string): string | null {
   return changes.join("\n");
 }
 
-export const jsClean = (str: string) => str.replace(/[^a-zA-Z0-9]/g, "");
+export const jsClean = (str: string) => {
+  // Clean all non-alphanumberic values except for dashes
+  const cleanString = str.replace(/[^a-zA-Z0-9-]/g, "");
+
+  // Capitalize the letter following a dash
+  const capitalizedAfterDash = cleanString.replace(
+    /-([a-zA-Z])/g,
+    (_, letter) => letter.toUpperCase()
+  );
+
+  // Remove all dashes and non-alphanumeric characters
+  return capitalizedAfterDash.replace(/[^a-zA-Z0-9]/g, "");
+};
 
 export const upperFirst = (str: string) =>
   str.charAt(0).toUpperCase() + str.slice(1);

@@ -348,7 +348,7 @@ async function writeOpenAPI(config: Config) {
         registrations.push(
           await buildStringFromTemplate("shared/openapi-register.template", {
             lowerVerb: verb.toLowerCase(),
-            pathTemplate: path.pathTemplate,
+            pathTemplate: path.pathTemplate.replace(/\[(.*)\]/g, '{$1}'),
             verb,
             importKey: path.importKey,
             isNotDELETE: verb !== "DELETE",

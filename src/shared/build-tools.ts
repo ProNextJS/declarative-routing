@@ -68,6 +68,7 @@ async function writeRoutes(silent: boolean = false) {
     verb: string;
     upperVerb: string;
     lowerVerb: string;
+    isNotDELETE: boolean
   }[] = [];
   for (const { verbs, pathTemplate, importKey } of sortedPaths) {
     if (verbs.length === 0) {
@@ -82,7 +83,8 @@ async function writeRoutes(silent: boolean = false) {
           importKey,
           verb,
           upperVerb: upperFirst(verb.toLowerCase()),
-          lowerVerb: verb.toLowerCase()
+          lowerVerb: verb.toLowerCase(),
+          isNotDELETE: verb !== "DELETE",
         });
       }
     }

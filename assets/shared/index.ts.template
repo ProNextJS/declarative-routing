@@ -27,6 +27,6 @@ export const {{{this.lowerVerb}}}{{{this.importKey}}} = make{{{this.upperVerb}}}
     ...defaultInfo,
     ...{{{this.importKey}}}Route.Route
   },
-  {{{this.importKey}}}Route.{{{this.verb}}}
+  {{#if isNotDELETE}}{{{this.importKey}}}Route.{{{this.verb}}}{{/if}}
 );
 {{/each}}

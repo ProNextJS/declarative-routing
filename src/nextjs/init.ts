@@ -55,6 +55,12 @@ export async function setup() {
     path.resolve(routes, "./hooks.ts"),
     {}
   );
+  
+  await buildFileFromTemplate(
+    "shared/utils.ts",
+    path.resolve(routes, "./utils.ts"),
+    {}
+  );
 
   spinner.text = "Getting package mananger.";
 

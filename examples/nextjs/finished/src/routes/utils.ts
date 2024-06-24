@@ -17,8 +17,14 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
             case z.ZodUnion: {
                 const options = (schema as z.ZodUnion<[z.ZodObject<z.ZodRawShape>, ...z.ZodObject<z.ZodRawShape>[]]>)._def.options;
                 for (const option of options) {
-                    const result = parseShape(option.shape, paramsArray, true);
-                    if (result && Object.keys(result).length > 0) {
+                    const shape = option.shape;
+                    let defaultCount = 0;
+                    for (const key in shape) {
+                        if (shape[key] instanceof z.ZodDefault)
+                            defaultCount++;
+                    }
+                    const result = parseShape(shape, paramsArray, true);
+                    if (result && Object.keys(result).length > defaultCount) {
                         return result;
                     }
                 }
@@ -46,6 +52,11 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
                     const result = fieldSchema.safeParse(fieldData.data!);
                     if (result.success) parsed[key] = result.data;
                 }
+                else if (fieldSchema instanceof z.ZodDefault) {
+                    const result = fieldSchema.safeParse(undefined);
+                    if (result.success) parsed[key] = result.data;
+
+                }
             }
         }
         return parsed;
@@ -65,13 +76,18 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
         return params;
     }
 
-    function convertToRequiredType(values: string[], schema: z.ZodTypeAny): ParsedArrayData<any> | ParsedData<any> {
-        if (schema instanceof z.ZodOptional) {
-            schema = schema._def.innerType
-        }
-        if (values.length > 1 && !(schema instanceof z.ZodArray))
+    function convertToRequiredType(values: string[], schema: z.ZodTypeAny): ParsedData<any> {
+        const usedSchema = getInnerType(schema)
+        if (values.length > 1 && !(usedSchema instanceof z.ZodArray))
             return { error: "Multiple values for non-array field" }
+        const value = parseValues(usedSchema, values)
+        if (value.error && schema.constructor === z.ZodDefault) {
+            return { data: undefined }
+        }
+        return value;
+    }
 
+    function parseValues(schema: any, values: string[]): ParsedData<any> {
         switch (schema.constructor) {
             case z.ZodNumber: return parseNumber(values[0])
             case z.ZodBoolean: return parseBoolean(values[0])
@@ -89,6 +105,16 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
         }
     }
 
+    function getInnerType(schema: z.ZodTypeAny) {
+        switch (schema.constructor) {
+            case z.ZodOptional:
+            case z.ZodDefault:
+                return schema._def.innerType
+            default:
+                return schema;
+        }
+    }
+
     function parseNumber(str: string): ParsedData<number> {
         const num = +str
         return isNaN(num) ? { error: `${str} is NaN` } : { data: num }
@@ -103,14 +129,13 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
     }
 
 
-    function parseArray<T>(values: string[], parseFunction: (str: string) => ParsedData<T>): ParsedArrayData<T> {
+    function parseArray<T>(values: string[], parseFunction: (str: string) => ParsedData<T>): ParsedData<T[]> {
         const numbers = values.map(parseFunction)
         const error = numbers.find(n => n.error)?.error
         if (error) return { error }
         return { data: numbers.map(n => n.data!) }
     }
 
-    type ParsedData<T> = { error: string; data?: undefined; } | { data: T; error?: undefined }
-    type ParsedArrayData<T> = { error: string; data?: undefined; } | { data: T[]; error?: undefined }
+    type ParsedData<T> = { error?: string; data?: T; }
 
 }

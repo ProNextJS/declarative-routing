@@ -18,13 +18,12 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
                 const options = (schema as z.ZodUnion<[z.ZodObject<z.ZodRawShape>, ...z.ZodObject<z.ZodRawShape>[]]>)._def.options;
                 for (const option of options) {
                     const shape = option.shape;
-                    let defaultCount = 0;
-                    for (const key in shape) {
-                        if (shape[key] instanceof z.ZodDefault)
-                            defaultCount++;
-                    }
+                    const requireds = getRequireds(shape)
+
                     const result = parseShape(shape, paramsArray, true);
-                    if (result && Object.keys(result).length > defaultCount) {
+                    const keys = Object.keys(result);
+
+                    if (requireds.every(key => keys.includes(key))) {
                         return result;
                     }
                 }
@@ -33,6 +32,17 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
             default:
                 throw new Error("Unsupported schema type");
         }
+    }
+
+    function getRequireds(shape: z.ZodRawShape) {
+        const keys = []
+        for (const key in shape) {
+            const fieldShape = shape[key];
+            if (!(fieldShape instanceof z.ZodDefault)
+                && !(fieldShape instanceof z.ZodOptional))
+                keys.push(key)
+        }
+        return keys;
     }
 
     function parseShape(shape: z.ZodRawShape, paramsArray: Record<string, string[]>, isPartOfUnion = false): Record<string, any> {
@@ -59,7 +69,8 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
                 }
             }
         }
-        return parsed;
+
+        return parsed
     }
 
 
@@ -139,3 +150,7 @@ export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchP
     type ParsedData<T> = { error?: string; data?: T; }
 
 }
+
+
+
+

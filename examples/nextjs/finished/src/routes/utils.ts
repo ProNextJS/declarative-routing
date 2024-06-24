@@ -1,12 +1,6 @@
 import { z } from "zod";
-import qs from "query-string"
 
-export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, query: string): z.infer<T> {
-    const data = qs.parse(query, { parseNumbers: true, parseBooleans: true })
-    return schema.safeParse(data)
-}
-
-export function customSafeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchParams: URLSearchParams): z.infer<T> {
+export function safeParseSearchParams<T extends z.ZodTypeAny>(schema: T, searchParams: URLSearchParams): z.infer<T> {
 
     const paramsArray = getAllParamsAsArrays(searchParams)
     return processSchema(schema, paramsArray);
@@ -120,4 +114,3 @@ export function customSafeParseSearchParams<T extends z.ZodTypeAny>(schema: T, s
     type ParsedArrayData<T> = { error: string; data?: undefined; } | { data: T[]; error?: undefined }
 
 }
-

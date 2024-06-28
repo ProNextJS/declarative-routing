@@ -6,8 +6,8 @@ export const Route = {
   name: "PokemonSearch",
   params: z.object({}),
   search: z.object({
-    q: z.string().optional(),
-    limit: z.coerce.number().optional()
+    q: z.string().default(""),
+    limit: z.number().default(10)
   })
 };
 

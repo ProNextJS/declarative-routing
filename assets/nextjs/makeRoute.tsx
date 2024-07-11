@@ -98,11 +98,18 @@ type GetRouteBuilder<
   resultSchema: Result;
 };
 
-type DeleteRouteBuilder<Params extends z.ZodSchema> = CoreRouteElements<
+type DeleteRouteBuilder<
+  Params extends z.ZodSchema,
+  Search extends z.ZodSchema,
+> = CoreRouteElements<
   Params,
   z.ZodSchema
 > & {
-  (p?: z.input<Params>, options?: FetchOptions): Promise<void>;
+  (
+    p?: z.input<Params>,
+    search?: z.input<Search>, 
+    options?: FetchOptions,
+  ): Promise<void>;
 };
 
 export type RouteBuilder<
@@ -376,15 +383,22 @@ export function makeGetRoute<
 export function makeDeleteRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
->(route: string, info: RouteInfo<Params, Search>): DeleteRouteBuilder<Params> {
+>(route: string, info: RouteInfo<Params, Search>): DeleteRouteBuilder<Params, Search> {
   const urlBuilder = createRouteBuilder(route, info);
 
-  const routeBuilder: DeleteRouteBuilder<Params> = (
+  const routeBuilder: DeleteRouteBuilder<Params, Search> = (
     p?: z.input<Params>,
     search?: z.input<Search>,
     options?: FetchOptions
   ): Promise<void> => {
-    return fetch(urlBuilder(p, search), options).then((res) => {
+    return fetch(urlBuilder(p, search), {
+      ...options,
+      method: "DELETE",
+      headers: {
+        ...(options?.headers || {}),
+        "Content-Type": "application/json"
+      }
+    }).then((res) => {
       if (!res.ok) {
         throw new Error(`Failed to fetch ${info.name}: ${res.statusText}`);
       }

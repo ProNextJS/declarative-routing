@@ -100,15 +100,12 @@ type GetRouteBuilder<
 
 type DeleteRouteBuilder<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema,
-> = CoreRouteElements<
-  Params,
-  z.ZodSchema
-> & {
+  Search extends z.ZodSchema
+> = CoreRouteElements<Params, z.ZodSchema> & {
   (
     p?: z.input<Params>,
-    search?: z.input<Search>, 
-    options?: FetchOptions,
+    search?: z.input<Search>,
+    options?: FetchOptions
   ): Promise<void>;
 };
 
@@ -166,7 +163,10 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
   }
 
   return (params: T): string => {
-    const p = elems.map((e) => e(params)).join("/");
+    const p = elems
+      .map((e) => e(params))
+      .filter(Boolean)
+      .join("/");
     if (catchAllSegment) {
       return p + catchAllSegment(params);
     } else {
@@ -383,7 +383,10 @@ export function makeGetRoute<
 export function makeDeleteRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema
->(route: string, info: RouteInfo<Params, Search>): DeleteRouteBuilder<Params, Search> {
+>(
+  route: string,
+  info: RouteInfo<Params, Search>
+): DeleteRouteBuilder<Params, Search> {
   const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: DeleteRouteBuilder<Params, Search> = (

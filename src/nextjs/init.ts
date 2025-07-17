@@ -16,10 +16,9 @@ import {
   addPackageJSONScripts,
   addPackages
 } from "../shared/utils";
-
 const STD_PACKAGES = {
-  dependencies: ["zod", "query-string"],
-  devDependencies: []
+  dependencies: ["zod", "query-string", "lodash.debounce", "lodash.throttle"],
+  devDependencies: ["@types/lodash.debounce", "@types/lodash.throttle"]
 };
 const STD_SCRIPTS = {
   "dr:build": "npx declarative-routing build",
@@ -55,7 +54,6 @@ export async function setup() {
     path.resolve(routes, "./hooks.ts"),
     {}
   );
-  
   await buildFileFromTemplate(
     "shared/utils.ts",
     path.resolve(routes, "./utils.ts"),
@@ -163,7 +161,7 @@ export async function setupNext() {
     src: response.src ?? src,
     routes: response.routes ?? routes,
     openapi:
-      response.openapi ?? true
+      (response.openapi ?? true)
         ? {
             target: `${routes}/openapi.ts`,
             template: `${routes}/openapi.template.ts`

@@ -9,7 +9,7 @@ type LinkProps = Parameters<typeof Link>[0];
 
 export type RouteInfo<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema,
 > = {
   name: string;
   params: Params;
@@ -42,26 +42,25 @@ type FetchOptions = Parameters<typeof fetch>[1];
 
 type CoreRouteElements<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema = typeof emptySchema
+  Search extends z.ZodSchema = typeof emptySchema,
 > = {
   params: z.output<Params>;
   paramsSchema: Params;
   search: z.output<Search>;
   searchSchema: Search;
-  urlBuilder: (p?: z.input<Params>, search?: z.input<Search>) => string;
 };
 
 type PutRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 > = CoreRouteElements<Params, Search> & {
   (
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>>;
 
   body: z.output<Body>;
@@ -74,13 +73,13 @@ type PostRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 > = CoreRouteElements<Params, Search> & {
   (
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>>;
 
   body: z.output<Body>;
@@ -92,12 +91,12 @@ type PostRouteBuilder<
 type GetRouteBuilder<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 > = CoreRouteElements<Params, Search> & {
   (
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>>;
 
   result: z.output<Result>;
@@ -106,17 +105,17 @@ type GetRouteBuilder<
 
 type DeleteRouteBuilder<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema,
 > = CoreRouteElements<Params, z.ZodSchema> &
   ((
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ) => Promise<void>);
 
 export type RouteBuilder<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema,
 > = CoreRouteElements<Params, Search> & {
   (p?: z.input<Params>, search?: z.input<Search>): string;
 
@@ -137,7 +136,7 @@ export type RouteBuilder<
 };
 
 function createPathBuilder<T extends Record<string, string | string[]>>(
-  route: string
+  route: string,
 ): (params: T) => string {
   const pathArr = route.split("/");
 
@@ -157,7 +156,7 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
     if (catchAll?.[1]) {
       const key = catchAll[1];
       elems.push((params: T) =>
-        (params[key as unknown as string] as string[]).join("/")
+        (params[key as unknown as string] as string[]).join("/"),
       );
     } else if (param?.[1]) {
       const key = param[1];
@@ -182,7 +181,7 @@ function createPathBuilder<T extends Record<string, string | string[]>>(
 
 function createRouteBuilder<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema,
 >(route: string, info: RouteInfo<Params, Search>) {
   const fn = createPathBuilder<z.output<Params>>(route);
 
@@ -192,7 +191,7 @@ function createRouteBuilder<
       const safeParams = info.params.safeParse(checkedParams);
       if (!safeParams?.success) {
         throw new Error(
-          `Invalid params for route ${info.name}: ${safeParams.error.message}`
+          `Invalid params for route ${info.name}: ${safeParams.error.message}`,
         );
       } else {
         checkedParams = safeParams.data;
@@ -203,17 +202,13 @@ function createRouteBuilder<
       : null;
     if (info.search && !safeSearch?.success) {
       throw new Error(
-        `Invalid search params for route ${info.name}: ${safeSearch?.error.message}`
+        `Invalid search params for route ${info.name}: ${safeSearch?.error.message}`,
       );
     }
 
     const baseUrl = fn(checkedParams);
     const searchString = search && queryString.stringify(search);
-    return [
-      baseUrl.startsWith("/") ? "" : "/",
-      baseUrl,
-      searchString ? `?${searchString}` : ""
-    ].join("");
+    return ["/", baseUrl, searchString ? `?${searchString}` : ""].join("");
   };
 }
 
@@ -223,11 +218,11 @@ export function makePostRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 >(
   route: string,
   info: RouteInfo<Params, Search>,
-  postInfo: PostInfo<Body, Result>
+  postInfo: PostInfo<Body, Result>,
 ): PostRouteBuilder<Params, Search, Body, Result> {
   const urlBuilder = createRouteBuilder(route, info);
 
@@ -235,12 +230,12 @@ export function makePostRoute<
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>> => {
     const safeBody = postInfo.body.safeParse(body);
     if (!safeBody.success) {
       throw new Error(
-        `Invalid body for route ${info.name}: ${safeBody.error.message}`
+        `Invalid body for route ${info.name}: ${safeBody.error.message}`,
       );
     }
 
@@ -250,8 +245,8 @@ export function makePostRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) {
@@ -263,7 +258,7 @@ export function makePostRoute<
         const result = postInfo.result.safeParse(data);
         if (!result.success) {
           throw new Error(
-            `Invalid response for route ${info.name}: ${result.error.message}`
+            `Invalid response for route ${info.name}: ${result.error.message}`,
           );
         }
         return result.data;
@@ -278,7 +273,6 @@ export function makePostRoute<
   routeBuilder.bodySchema = postInfo.body;
   routeBuilder.result = undefined as z.output<Result>;
   routeBuilder.resultSchema = postInfo.result;
-  routeBuilder.urlBuilder = urlBuilder;
 
   return routeBuilder;
 }
@@ -287,11 +281,11 @@ export function makePutRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
   Body extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 >(
   route: string,
   info: RouteInfo<Params, Search>,
-  putInfo: PutInfo<Body, Result>
+  putInfo: PutInfo<Body, Result>,
 ): PutRouteBuilder<Params, Search, Body, Result> {
   const urlBuilder = createRouteBuilder(route, info);
 
@@ -299,12 +293,12 @@ export function makePutRoute<
     body: z.input<Body>,
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>> => {
     const safeBody = putInfo.body.safeParse(body);
     if (!safeBody.success) {
       throw new Error(
-        `Invalid body for route ${info.name}: ${safeBody.error.message}`
+        `Invalid body for route ${info.name}: ${safeBody.error.message}`,
       );
     }
 
@@ -314,8 +308,8 @@ export function makePutRoute<
       body: JSON.stringify(safeBody.data),
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) {
@@ -327,7 +321,7 @@ export function makePutRoute<
         const result = putInfo.result.safeParse(data);
         if (!result.success) {
           throw new Error(
-            `Invalid response for route ${info.name}: ${result.error.message}`
+            `Invalid response for route ${info.name}: ${result.error.message}`,
           );
         }
         return result.data;
@@ -342,7 +336,6 @@ export function makePutRoute<
   routeBuilder.bodySchema = putInfo.body;
   routeBuilder.result = undefined as z.output<Result>;
   routeBuilder.resultSchema = putInfo.result;
-  routeBuilder.urlBuilder = urlBuilder;
 
   return routeBuilder;
 }
@@ -350,18 +343,18 @@ export function makePutRoute<
 export function makeGetRoute<
   Params extends z.ZodSchema,
   Search extends z.ZodSchema,
-  Result extends z.ZodSchema
+  Result extends z.ZodSchema,
 >(
   route: string,
   info: RouteInfo<Params, Search>,
-  getInfo: GetInfo<Result>
+  getInfo: GetInfo<Result>,
 ): GetRouteBuilder<Params, Search, Result> {
   const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: GetRouteBuilder<Params, Search, Result> = (
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<z.output<Result>> => {
     return fetch(urlBuilder(p, search), options)
       .then((res) => {
@@ -374,7 +367,7 @@ export function makeGetRoute<
         const result = getInfo.result.safeParse(data);
         if (!result.success) {
           throw new Error(
-            `Invalid response for route ${info.name}: ${result.error.message}`
+            `Invalid response for route ${info.name}: ${result.error.message}`,
           );
         }
         return result.data;
@@ -387,32 +380,31 @@ export function makeGetRoute<
   routeBuilder.searchSchema = info.search;
   routeBuilder.result = undefined as z.output<Result>;
   routeBuilder.resultSchema = getInfo.result;
-  routeBuilder.urlBuilder = urlBuilder;
 
   return routeBuilder;
 }
 
 export function makeDeleteRoute<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema
+  Search extends z.ZodSchema,
 >(
   route: string,
-  info: RouteInfo<Params, Search>
+  info: RouteInfo<Params, Search>,
 ): DeleteRouteBuilder<Params, Search> {
   const urlBuilder = createRouteBuilder(route, info);
 
   const routeBuilder: DeleteRouteBuilder<Params, Search> = (
     p?: z.input<Params>,
     search?: z.input<Search>,
-    options?: FetchOptions
+    options?: FetchOptions,
   ): Promise<void> => {
     return fetch(urlBuilder(p, search), {
       ...options,
       method: "DELETE",
       headers: {
         ...(options?.headers || {}),
-        "Content-Type": "application/json"
-      }
+        "Content-Type": "application/json",
+      },
     }).then((res) => {
       if (!res.ok) {
         throw new Error(`Failed to fetch ${info.name}: ${res.statusText}`);
@@ -424,21 +416,20 @@ export function makeDeleteRoute<
   routeBuilder.paramsSchema = info.params;
   routeBuilder.search = undefined as z.output<Search>;
   routeBuilder.searchSchema = info.search;
-  routeBuilder.urlBuilder = urlBuilder;
 
   return routeBuilder;
 }
 
 export function makeRoute<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema = typeof emptySchema
+  Search extends z.ZodSchema = typeof emptySchema,
 >(
   route: string,
-  info: RouteInfo<Params, Search>
+  info: RouteInfo<Params, Search>,
 ): RouteBuilder<Params, Search> {
   const urlBuilder: RouteBuilder<Params, Search> = createRouteBuilder(
     route,
-    info
+    info,
   ) as RouteBuilder<Params, Search>;
 
   urlBuilder.routeName = info.name;
@@ -486,7 +477,6 @@ export function makeRoute<
   urlBuilder.paramsSchema = info.params;
   urlBuilder.search = undefined as z.output<Search>;
   urlBuilder.searchSchema = info.search;
-  urlBuilder.urlBuilder = urlBuilder;
 
   return urlBuilder;
 }

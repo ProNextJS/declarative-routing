@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import {
   useParams as useNextParams,
-  useSearchParams as useNextSearchParams
+  useSearchParams as useNextSearchParams,
 } from "next/navigation";
 import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -13,7 +13,7 @@ import {
   ZodOptional,
   ZodNullable,
   ZodDefault,
-  ZodEffects
+  ZodEffects,
 } from "zod";
 
 import debounce from "lodash.debounce";
@@ -24,13 +24,13 @@ type PushOptions = Parameters<ReturnType<typeof useRouter>["push"]>[1];
 
 export function usePush<
   Params extends z.ZodSchema,
-  Search extends z.ZodSchema = typeof emptySchema
+  Search extends z.ZodSchema = typeof emptySchema,
 >(builder: RouteBuilder<Params, Search>) {
   const router = useRouter();
   return (
     p: z.input<Params>,
     search?: z.input<Search>,
-    options?: PushOptions
+    options?: PushOptions,
   ) => {
     router.push(builder(p, search), options);
   };
@@ -40,16 +40,16 @@ type UseParamsConfig = {
   partial?: boolean;
 };
 const defaultUseParamsConfig = {
-  partial: false
+  partial: false,
 } as const satisfies UseParamsConfig;
 
 export function useParams<
   Params extends z.AnyZodObject,
   Search extends z.AnyZodObject = typeof emptySchema,
-  TConfig extends UseParamsConfig = typeof defaultUseParamsConfig
+  TConfig extends UseParamsConfig = typeof defaultUseParamsConfig,
 >(
   builder: RouteBuilder<Params, Search>,
-  _config?: TConfig
+  _config?: TConfig,
 ): TConfig["partial"] extends true
   ? Partial<z.output<Params>>
   : z.output<Params> {
@@ -66,10 +66,10 @@ export function useParams<
     throw new Error(
       [
         `Invalid route params for route ${builder.routeName}: ${res.error.message}.`,
-        `${isSafeParsedWithPartial ? "ℹ️ If you wanted to use partial params, pass {partial:true} as second parameter." : ""}`
+        `${isSafeParsedWithPartial ? "ℹ️ If you wanted to use partial params, pass {partial:true} as second parameter." : ""}`,
       ]
         .filter(Boolean)
-        .join(" ")
+        .join(" "),
     );
   }
   return res.data;
@@ -77,36 +77,40 @@ export function useParams<
 
 export function useSearchParams<
   Params extends z.AnyZodObject,
-  Search extends z.AnyZodObject = typeof emptySchema
+  Search extends z.AnyZodObject = typeof emptySchema,
 >(
   builder: RouteBuilder<Params, Search>,
-  config?: UseParamsConfig
+  config?: UseParamsConfig,
 ): z.output<Search> {
   const searchSchema = useMemo(
     () => (config?.partial ? builder.searchSchema : builder.searchSchema),
-    [config?.partial, builder.searchSchema]
+    [config?.partial, builder.searchSchema],
   );
 
   const rawParams = convertURLSearchParamsToObject(
     useNextSearchParams(),
-    searchSchema
+    searchSchema,
   );
 
   const res = builder.searchSchema.safeParse(rawParams);
   if (!res.success) {
     throw new Error(
-      `Invalid search params for route ${builder.routeName}: ${res.error.message}`
+      `Invalid search params for route ${builder.routeName}: ${res.error.message}`,
     );
   }
   return res.data;
 }
 export function useSearchParamsState<
   Params extends z.AnyZodObject,
-  Search extends z.AnyZodObject = typeof emptySchema
->(builder: RouteBuilder<Params, Search>, config?: UseParamsConfig) {
-  const _searchParams = useSearchParams(builder, config);
+  Search extends z.AnyZodObject = typeof emptySchema,
+>(
+  builder: RouteBuilder<Params, Search>,
+  useParamsConfig?: UseParamsConfig,
+  useDebounceCallbackConfig?: DebounceCallbackParam,
+) {
+  const _searchParams = useSearchParams(builder, useParamsConfig);
   const push = usePush(builder);
-  const params = useParams(builder, config);
+  const params = useParams(builder, useParamsConfig);
   const searchParams = useMemo(() => _searchParams, [_searchParams]);
 
   /**
@@ -116,7 +120,7 @@ export function useSearchParamsState<
     (
       newValues: Partial<{
         [K in keyof z.output<Search>]: z.output<Search>[K] | null | undefined;
-      }>
+      }>,
     ) => {
       if (Object.keys(newValues).every((val) => val === undefined)) {
         return;
@@ -139,11 +143,12 @@ export function useSearchParamsState<
 
       push(params, updatedValues);
     },
-    [_searchParams, push, params, builder.searchSchema]
+    [_searchParams, push, params, builder.searchSchema],
   );
 
   const debouncedSetSearchParams = useDebounceCallback(
-    setSearchParams
+    setSearchParams,
+    useDebounceCallbackConfig,
   ) as typeof setSearchParams;
   const resetAllValues = useCallback(() => {
     push(params, builder.searchSchema.parse({}) as z.output<Search>);
@@ -153,7 +158,7 @@ export function useSearchParamsState<
     searchParams,
     setSearchParams,
     resetAllValues,
-    debouncedSetSearchParams
+    debouncedSetSearchParams,
   } as const;
 }
 export type DebounceOptions = {
@@ -180,19 +185,19 @@ export type DebouncedState<T extends (...args: any) => ReturnType<T>> = ((
 
 const defaultDebounceCallbackParam: DebounceCallbackParam = {
   delay: 500,
-  debounceOrThrottle: "debounce"
+  debounceOrThrottle: "debounce",
 };
 export function useDebounceCallback<T extends (...args: any) => ReturnType<T>>(
   func: T,
-  _options: DebounceCallbackParam = {}
+  _options: DebounceCallbackParam = {},
 ): DebouncedState<T> {
   const options = useMemo(
     () => ({ ...defaultDebounceCallbackParam, ..._options }),
-    [_options]
+    [_options],
   );
   const debounceOrThrottle = useMemo(
     () => options.debounceOrThrottle,
-    [options.debounceOrThrottle]
+    [options.debounceOrThrottle],
   );
   const delay = useMemo(() => options.delay, [options.delay]);
   const debounceOptions = useMemo(() => {
@@ -200,7 +205,7 @@ export function useDebounceCallback<T extends (...args: any) => ReturnType<T>>(
       ...options,
       leading: options.leading ?? false,
       debounceOrThrottle,
-      delay
+      delay,
     };
   }, [options, debounceOrThrottle, delay]);
   const debouncedFunc = useRef<ReturnType<typeof debounce>>(undefined);
@@ -238,15 +243,18 @@ export function useDebounceCallback<T extends (...args: any) => ReturnType<T>>(
 
   // Update the debounced function ref whenever func, wait, or options change
   useEffect(() => {
-    debouncedFunc.current = debounce(func, delay, debounceOptions);
-  }, [func, delay, debounceOptions]);
+    debouncedFunc.current =
+      debounceOrThrottle === "throttle"
+        ? throttle(func, delay, debounceOptions)
+        : debounce(func, delay, debounceOptions);
+  }, [func, delay, debounceOptions, debounceOrThrottle]);
 
   return debounced;
 }
 
 function convertURLSearchParamsToObject(
   params: Readonly<URLSearchParams> | null,
-  schema: z.ZodTypeAny
+  schema: z.ZodTypeAny,
 ): Record<string, string | string[]> {
   if (!params) {
     return {};
@@ -271,7 +279,7 @@ export function getArrayKeysFromZodSchema(schema: z.ZodTypeAny): string[] {
   if (!(schema instanceof z.ZodObject)) return [];
   return Object.entries(schema.shape).flatMap(([key, value]) => {
     const unwrapped = unwrapZodType(
-      value as Parameters<typeof unwrapZodType>[0]
+      value as Parameters<typeof unwrapZodType>[0],
     );
     return unwrapped instanceof ZodArray ? [key] : [];
   });
@@ -281,7 +289,7 @@ function unwrapZodType(schema: ZodTypeAny): ZodTypeAny {
     ZodOptional,
     ZodNullable,
     ZodDefault,
-    ZodEffects
+    ZodEffects,
   ];
   if (unwrappableInstances.some((instance) => schema instanceof instance)) {
     return unwrapZodType(schema._def.innerType || schema._def.schema);

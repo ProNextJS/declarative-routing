@@ -18,6 +18,7 @@
     "prepublish": "npm run build",
     "dev": "tsx src/cli.ts",
     "build": "tsup",
+    "build:watch": "tsup --watch",
     "test": "exit 1"
   },
   "keywords": [],

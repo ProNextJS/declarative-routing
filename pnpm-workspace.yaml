@@ -1,0 +1,5 @@
+packages:
+  - "."
+  - "examples/nextjs/*"
+  - "examples/qwikcity/*"
+  - "examples/react-router/*"

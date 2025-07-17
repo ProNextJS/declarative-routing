@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { BaseRouteInfo } from "@/routes/makeRoute";
 
 export const Route = {
   name: "{{{name}}}",
@@ -7,7 +8,7 @@ export const Route = {
     {{{this}}},
 {{/each}}  
   })
-};
+} satisfies BaseRouteInfo;
 
 {{#each verbs}}
 export const {{{this.verb}}} = {
